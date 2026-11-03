@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CNG · Controle de Postagens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14171c; --ink2:#4a525e; --mute:#8a929d; --line:#e3e6ea; --bg:#f5f6f8; --card:#fff;
+  --brand:#c8102e; --brand2:#9e0c24; --ok:#1f8a4c; --okbg:#e6f4ec; --warn:#b26a00; --warnbg:#fff3df;
+  --bad:#c8102e; --badbg:#fde8eb; --info:#2457c5; --infobg:#e8effd; --r:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,sans-serif}
+h1,h2,h3{font-family:Archivo,Inter,sans-serif;margin:0;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+
+/* top bar */
+header{background:var(--ink);color:#fff;position:sticky;top:0;z-index:20}
+.bar{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px}
+.logo b{background:var(--brand);font-family:Archivo;font-weight:800;padding:3px 8px;border-radius:5px;letter-spacing:.04em}
+.logo span{font-family:Archivo;font-weight:700;font-size:15px}
+.clock{font-variant-numeric:tabular-nums;color:#c9ced6;font-size:13px}
+.clock .pill{margin-left:6px}
+nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+nav button{background:transparent;border:0;color:#c9ced6;padding:7px 11px;border-radius:7px;font-weight:600}
+nav button.on{background:#fff;color:var(--ink)}
+nav button:hover:not(.on){background:#2a2f37;color:#fff}
+.who{display:flex;align-items:center;gap:8px;font-size:13px}
+.who button{background:#2a2f37;border:0;color:#fff;border-radius:7px;padding:6px 10px}
+
+main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.sp{flex:1}
+.muted{color:var(--mute)}
+.small{font-size:12px}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600;background:#eef0f3;color:var(--ink2)}
+.pill.ok{background:var(--okbg);color:var(--ok)} .pill.warn{background:var(--warnbg);color:var(--warn)}
+.pill.bad{background:var(--badbg);color:var(--bad)} .pill.info{background:var(--infobg);color:var(--info)}
+.btn{background:var(--ink);color:#fff;border:0;border-radius:8px;padding:9px 14px;font-weight:600}
+.btn.red{background:var(--brand)} .btn.red:hover{background:var(--brand2)}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:default}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--ink2)}
+input[type=text],input[type=url],input[type=date],input[type=time],input[type=password],input[type=number],select,textarea{
+  border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;min-width:0;width:100%}
+textarea{min-height:64px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid #c8102e33;border-color:var(--brand)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 12px;font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px}
+.chip.on{border-color:var(--ink);background:var(--ink);color:#fff}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.chip.on .dot{box-shadow:0 0 0 1.5px #fff}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
+.metas{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.kpi .v{font-family:Archivo;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:12px;color:var(--mute);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+
+/* grade */
+.gtable{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;min-width:640px}
+.gtable th:first-child{width:90px}
+.gtable th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--mute);text-align:left;padding:8px;border-bottom:1px solid var(--line);background:#fafbfc;position:sticky;top:0}
+.gtable td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.gtable tr.now td{background:#fff9e8}
+.gtable td.h{font-family:Archivo;font-weight:700;font-variant-numeric:tabular-nums;width:70px;white-space:nowrap}
+.cell{border-radius:7px;padding:5px 8px;font-size:12px;min-height:30px;display:flex;flex-direction:column;gap:2px}
+.cell.done{background:var(--okbg);color:#145c33}
+.cell.sched{background:var(--infobg);color:var(--info)}
+.cell.miss{background:var(--badbg);color:var(--bad);font-weight:600}
+.cell.wait{background:#f3f4f6;color:var(--mute)}
+.cell.opt{background:transparent;color:#c2c7ce}
+.cell a{color:inherit}
+.cell .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px}
+.cell button.add{border:1px dashed currentColor;background:transparent;border-radius:6px;padding:1px 6px;font-size:11px;color:inherit;align-self:flex-start}
+.scroll{overflow:auto}
+
+/* list */
+.entry{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.entry:last-child{border-bottom:0}
+.entry .tm{font-family:Archivo;font-weight:700;width:76px;flex:none;font-variant-numeric:tabular-nums}
+.entry .body{flex:1;min-width:0}
+.entry .ti{font-weight:600;word-break:break-word}
+.entry .acts{display:flex;gap:6px;flex:none}
+.av{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex:none}
+
+/* login */
+.login{max-width:520px;margin:40px auto}
+.people{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.person{border:1px solid var(--line);background:#fff;border-radius:var(--r);padding:14px;text-align:left;display:flex;gap:10px;align-items:center}
+.person:hover{border-color:var(--ink)}
+.person .av{width:38px;height:38px;font-size:15px}
+.person small{display:block;color:var(--mute);font-size:12px}
+
+/* meter */
+.meter{height:8px;background:#eef0f3;border-radius:99px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--ok)}
+.tm-card{display:flex;flex-direction:column;gap:10px}
+.tm-head{display:flex;gap:10px;align-items:center}
+
+/* toast + modal */
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:9px;font-weight:600;z-index:50;opacity:0;transition:opacity .2s;pointer-events:none}
+#toast.show{opacity:1}
+.modal{position:fixed;inset:0;background:#14171c88;display:flex;align-items:flex-start;justify-content:center;padding:40px 12px;z-index:40;overflow:auto}
+.modal .card{width:100%;max-width:620px}
+.banner{padding:10px 14px;border-radius:9px;margin-bottom:14px;font-weight:500}
+.banner.warn{background:var(--warnbg);color:#7a4900}
+.banner.bad{background:var(--badbg);color:var(--bad)}
+.sec{margin-top:18px}
+.sec h3{font-size:15px;margin-bottom:10px}
+table.simple{width:100%;border-collapse:collapse}
+table.simple td,table.simple th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}
+table.simple th{color:var(--mute);font-size:12px;text-transform:uppercase}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="logo"><b>CNG</b><span>Controle de Postagens</span></div>
+    <div class="clock" id="clock"></div>
+    <nav id="nav" class="hidden">
+      <button data-v="registrar">Registrar</button>
+      <button data-v="grade">Grade do dia</button>
+      <button data-v="equipe">Equipe</button>
+      <button data-v="historico">Histórico</button>
+      <button data-v="ajustes" id="navAjustes">Ajustes</button>
+    </nav>
+    <div class="who hidden" id="who"></div>
+  </div>
+</header>
+
+<main>
+  <div id="status"></div>
+
+  <!-- LOGIN -->
+  <section id="v-login" class="login hidden">
+    <div class="card">
+      <h2>Quem está entrando?</h2>
+      <p class="muted">Escolha seu nome e digite seu PIN. No primeiro acesso você cria o seu.</p>
+      <div class="people" id="people"></div>
+      <div id="pinBox" class="hidden">
+        <label class="f"><span id="pinLabel">PIN</span>
+          <input type="password" inputmode="numeric" maxlength="6" id="pin" autocomplete="off" placeholder="4 a 6 números">
+        </label>
+        <div class="row" style="margin-top:10px">
+          <button class="btn ghost" id="pinBack">Voltar</button><span class="sp"></span>
+          <button class="btn red" id="pinGo">Entrar</button>
+        </div>
+        <p class="small muted" id="pinErr"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- REGISTRAR -->
+  <section id="v-registrar" class="hidden">
+    <div class="grid2">
+      <div class="card">
+        <h2 id="formTitle">Registrar o que foi feito</h2>
+        <p class="muted small" style="margin:4px 0 14px">Um registro pode valer para várias redes de uma vez.</p>
+        <form id="form" class="tm-card">
+          <div class="row">
+            <label class="f" style="flex:1">Data<input type="date" id="fDate" required></label>
+            <label class="f" style="flex:1">Horário da grade <span class="muted" style="font-weight:500">(obrigatório p/ Instagram)</span><select id="fSlot"></select></label>
+          </div>
+          <label class="f">Atividade
+            <div class="chips" id="fAtiv"></div>
+          </label>
+          <label class="f" id="platWrap">Onde foi postado
+            <div class="chips" id="fPlat"></div>
+          </label>
+          <div class="row">
+            <label class="f" style="flex:1">Tipo / categoria<select id="fTipo"></select></label>
+            <label class="f" style="flex:1">Status<select id="fStatus"><option>Publicado</option><option>Agendado</option></select></label>
+          </div>
+          <label class="f">Tema / pauta<input type="text" id="fPauta" maxlength="200" placeholder="Ex.: Acidente na BR-060 em Rio Verde" required></label>
+          <label class="f">Link do post (opcional)<input type="url" id="fLink" placeholder="https://"></label>
+          <label class="f">Observações (opcional)<textarea id="fObs" maxlength="500"></textarea></label>
+          <div class="row">
+            <button type="button" class="btn ghost hidden" id="fCancel">Cancelar edição</button>
+            <span class="sp"></span>
+            <button class="btn red" id="fSave">Salvar registro</button>
+          </div>
+        </form>
+      </div>
+      <div class="tm-card">
+        <div class="card">
+          <div class="row"><h3>Agora na grade</h3><span class="sp"></span><span id="nowSlotPill"></span></div>
+          <div id="nowSlot" style="margin-top:10px"></div>
+        </div>
+        <div class="card">
+          <div class="row"><h3>Meus registros de hoje</h3><span class="sp"></span><span class="pill" id="myCount">0</span></div>
+          <div id="myList" style="margin-top:6px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GRADE -->
+  <section id="v-grade" class="hidden">
+    <div class="row" style="margin-bottom:12px">
+      <h2>Grade do dia</h2>
+      <span id="dayKind"></span>
+      <span class="sp"></span>
+      <button class="btn ghost sm" id="gPrev">◀</button>
+      <input type="date" id="gDate" style="width:auto">
+      <button class="btn ghost sm" id="gNext">▶</button>
+      <button class="btn ghost sm" id="gToday">Hoje</button>
+    </div>
+    <div class="kpis" id="gKpis"></div>
+    <div class="card scroll" style="padding:0"><table class="gtable" id="gTable"></table></div>
+    <p class="small muted" style="margin-top:8px">Grade: verde = publicado · azul = agendado · vermelho = horário passou sem post · cinza = ainda vai acontecer. Metas diárias: o "ritmo" compara com quanto já deveria ter saído até agora.</p>
+    <div class="metas" id="gMetas"></div>
+  </section>
+
+  <!-- EQUIPE -->
+  <section id="v-equipe" class="hidden">
+    <div class="row" style="margin-bottom:12px">
+      <h2>Equipe</h2><span class="sp"></span>
+      <input type="date" id="eDate" style="width:auto">
+    </div>
+    <div class="grid2" id="eCards"></div>
+    <div class="card sec">
+      <h3>Últimos 7 dias</h3>
+      <div class="scroll" id="eWeek"></div>
+    </div>
+  </section>
+
+  <!-- HISTORICO -->
+  <section id="v-historico" class="hidden">
+    <div class="row" style="margin-bottom:12px">
+      <h2>Histórico</h2><span class="sp"></span>
+      <input type="month" id="hMonth" style="width:auto" class="">
+    </div>
+    <div class="card">
+      <div class="row">
+        <label class="f">Dia<select id="hDay"><option value="">Mês inteiro</option></select></label>
+        <label class="f">Funcionário<select id="hPerson"><option value="">Todos</option></select></label>
+        <label class="f">Rede<select id="hPlat"><option value="">Todas</option></select></label>
+        <label class="f">Atividade<select id="hAtiv"><option value="">Todas</option></select></label>
+        <label class="f" style="flex:1;min-width:160px">Buscar<input type="text" id="hQ" placeholder="pauta, link..."></label>
+        <span class="sp"></span>
+        <button class="btn ghost sm" id="hCsv" style="align-self:flex-end">Copiar CSV</button>
+      </div>
+      <p class="small muted" id="hCountTxt" style="margin:10px 0 0"></p>
+      <div id="hList"></div>
+    </div>
+  </section>
+
+  <!-- AJUSTES -->
+  <section id="v-ajustes" class="hidden">
+    <h2 style="margin-bottom:12px">Ajustes</h2>
+    <div class="grid2">
+      <div class="card">
+        <h3>Grade de horários</h3>
+        <p class="small muted">Vale para as redes em "grade". Dia útil: a cada 1 hora. Fim de semana e feriado: a cada 2 horas.</p>
+        <div class="row" style="margin-top:10px">
+          <label class="f" style="flex:1">Dia útil: início<input type="time" id="sWdS" step="3600"></label>
+          <label class="f" style="flex:1">último post<input type="time" id="sWdE" step="3600"></label>
+          <label class="f" style="width:90px">a cada (h)<input type="number" id="sWdStep" min="1" max="4"></label>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <label class="f" style="flex:1">Fim de semana/feriado: início<input type="time" id="sWeS" step="3600"></label>
+          <label class="f" style="flex:1">último post<input type="time" id="sWeE" step="3600"></label>
+          <label class="f" style="width:90px">a cada (h)<input type="number" id="sWeStep" min="1" max="4"></label>
+        </div>
+        <div class="sec">
+          <h3>Regras por rede</h3>
+          <p class="small muted" style="margin:0 0 8px">Grade = um post em cada horário. Meta = quantidade de posts por dia, em qualquer horário.</p>
+          <table class="simple" id="sPlats"></table>
+        </div>
+        <div class="sec">
+          <h3>Feriados</h3>
+          <div class="row"><input type="date" id="sHolDate" style="width:auto"><input type="text" id="sHolName" placeholder="Nome" style="flex:1"><button class="btn ghost sm" id="sHolAdd">Adicionar</button></div>
+          <table class="simple" id="sHols" style="margin-top:8px"></table>
+        </div>
+        <div class="row sec"><span class="sp"></span><button class="btn red" id="sSave">Salvar ajustes</button></div>
+      </div>
+      <div class="card">
+        <h3>Funcionários</h3>
+        <p class="small muted">Redes que cada um cuida e metas diárias. "Resetar PIN" faz a pessoa criar um novo no próximo acesso.</p>
+        <div id="sTeam" style="margin-top:10px"></div>
+        <div class="row sec">
+          <input type="text" id="sNewName" placeholder="Nome do novo funcionário" style="flex:1">
+          <button class="btn ghost sm" id="sAdd">Adicionar</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="modal" class="modal hidden"><div class="card" id="modalBody"></div></div>
+<div id="toast"></div>
+
+<script>
+/* ======================= constantes ======================= */
+const TZ = 'America/Sao_Paulo';
+const PLATS = [
+  {id:'Instagram', c:'#d6297a'}, {id:'TikTok', c:'#111'},
+  {id:'YouTube', c:'#e00'}, {id:'Site', c:'#2457c5'}
+];
+const ATIVS = ['Postagem','Vídeo (matéria)','Captação de vídeo','Edição de vídeo','Trabalho extra','Outro'];
+const TIPOS = ['Notícia Geral','Política','Polícia','Esportes','Saúde','Agro','Devocional','Post RV','Publi','Entretenimento','Utilidade pública','Outro'];
+const COLORS = ['#c8102e','#2457c5','#1f8a4c','#b26a00','#7b3fc4','#0e7c86','#a3366a','#4a525e'];
+const DEFAULT_CFG = {
+  weekday:{start:7,end:22,step:1},
+  weekend:{start:8,end:22,step:2},
+  platCfg:{Instagram:{mode:'grade'},TikTok:{mode:'meta',wd:8,we:8},YouTube:{mode:'meta',wd:4,we:4},Site:{mode:'meta',wd:5,we:3}},
+  holidays:[],
+  team:[]
+};
+
+/* ======================= estado ======================= */
+let token=null, isAdmin=false, myUid=null; let pollTimer=null; let loading=false;
+let cfg = JSON.parse(JSON.stringify(DEFAULT_CFG));
+let pins = {};
+let me = null;               // nome do funcionário logado
+let view = 'registrar';
+let monthKey = null;         // 'YYYY-MM' assinado
+let entries = [];            // registros do mês assinado
+let extraMonths = {};        // mês anterior para a semana
+let editingId=null;
+let gDate=null, eDate=null;
+let pinTarget=null;
+let cfgLoaded=false, pinsLoaded=false;
+
+/* ======================= util de data ======================= */
+function nowParts(){
+  const p = new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date());
+  const o={}; p.forEach(x=>o[x.type]=x.value);
+  const h = o.hour==='24'?0:+o.hour;
+  return {date:`${o.year}-${o.month}-${o.day}`, h, m:+o.minute};
+}
+const today = ()=>nowParts().date;
+function addDays(d,n){const t=new Date(d+'T12:00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10)}
+function dow(d){return new Date(d+'T12:00:00Z').getUTCDay()}
+const DOWS=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+function fmtD(d){const [y,m,dd]=d.split('-');return `${dd}/${m}`}
+function fmtLong(d){return `${DOWS[dow(d)]}, ${fmtD(d)}/${d.slice(0,4)}`}
+const hh = h=>String(h).padStart(2,'0')+':00';
+function holidayOf(d){return (cfg.holidays||[]).find(x=>x.date===d)}
+function isReduced(d){const w=dow(d);return w===0||w===6||!!holidayOf(d)}
+function slotsFor(d){
+  const g = isReduced(d)?cfg.weekend:cfg.weekday;
+  const out=[]; const step=Math.max(1,+g.step||1);
+  for(let h=+g.start; h<=+g.end; h+=step) out.push(hh(h));
+  return out;
+}
+function currentSlot(d){
+  const n=nowParts(); if(d!==n.date) return null;
+  const s=slotsFor(d); let cur=null;
+  s.forEach(x=>{ if(+x.slice(0,2)<=n.h) cur=x; });
+  return cur;
+}
+function slotPassed(d,slot){
+  const n=nowParts();
+  if(d<n.date) return true; if(d>n.date) return false;
+  const g = isReduced(d)?cfg.weekend:cfg.weekday;
+  // tolerância: o horário fica "atrasado" 15 min depois do horário da grade
+  const mins = n.h*60+n.m, sm=+slot.slice(0,2)*60;
+  return mins >= sm+15;
+}
+
+/* ======================= util geral ======================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2200)}
+function team(){return cfg.team||[]}
+function member(n){return team().find(t=>t.name===n)}
+function colorOf(n){const i=team().findIndex(t=>t.name===n);return COLORS[(i<0?7:i)%COLORS.length]}
+function avatar(n){return `<span class="av" style="background:${colorOf(n)}">${esc((n||'?').slice(0,1).toUpperCase())}</span>`}
+function platDot(p){const x=PLATS.find(q=>q.id===p);return `<span class="dot" style="background:${x?x.c:'#999'}"></span>`}
+function safeUrl(u){try{const x=new URL(u);return /^https?:$/.test(x.protocol)?x.href:''}catch(e){return ''}}
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
+async function hash(s){
+  try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('cng:'+s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+  catch(e){let h=0;for(const c of 'cng:'+s)h=(h*31+c.charCodeAt(0))|0;return 'x'+h}
+}
+function status(html,kind){$('#status').innerHTML = html?`<div class="banner ${kind||'warn'}">${html}</div>`:''}
+
+/* ======================= relógio ======================= */
+function tick(){
+  const n=nowParts(); const d=n.date;
+  const red=isReduced(d); const hol=holidayOf(d);
+  $('#clock').innerHTML = `${fmtLong(d)} · ${String(n.h).padStart(2,'0')}:${String(n.m).padStart(2,'0')}
+   <span class="pill ${red?'warn':'info'}">${hol?esc(hol.name):red?'Fim de semana':'Dia útil'} · ${red?'2 em 2h':'1 em 1h'}</span>`;
+}
+
+/* ======================= dados ======================= */
+/* Link do app da web (Apps Script → Implantar → Gerenciar implantações), termina em /exec */
+const API_URL = 'COLE_AQUI_O_LINK_EXEC';
+function run(fn,...args){
+  if(window.google&&google.script&&google.script.run){
+    return new Promise((ok,bad)=>{
+      google.script.run.withSuccessHandler(ok).withFailureHandler(e=>bad(e instanceof Error?e:new Error(String(e&&e.message||e))))[fn](...args);
+    });
+  }
+  if(!/^https:\/\/script\.google\.com\//.test(API_URL)) return Promise.reject(new Error('Link do sistema (API_URL) não configurado no index.html.'));
+  return fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn,args})})
+    .then(r=>{if(!r.ok)throw new Error('Servidor respondeu '+r.status);return r.json()})
+    .then(j=>{if(!j.ok)throw new Error(j.error||'erro');return j.result});
+}
+function errMsg(e){const m=String(e&&e.message||e||'erro');if(m.includes('SESSAO')){setTimeout(showLogin,50);return 'Sessão expirada, entre de novo.'}return m.replace(/^Error:\s*/,'').replace(/^Exception:\s*/,'')}
+function applyState(st){
+  cfg=Object.assign(JSON.parse(JSON.stringify(DEFAULT_CFG)),st.cfg||{});
+  pins=st.pinsSet||{};
+  const pm=addDays(monthKey+'-01',-1).slice(0,7);
+  entries=(st.entries||[]).filter(e=>e.date.slice(0,7)===monthKey);
+  extraMonths={[pm]:(st.entries||[]).filter(e=>e.date.slice(0,7)===pm)};
+  if(me && !st.auth){ showLogin(); return }
+  if(st.auth) isAdmin=!!st.auth.admin;
+}
+async function refresh(quiet){
+  if(loading) return; loading=true;
+  const timer=setTimeout(()=>status('Conexão lenta: os dados ainda não chegaram.'),10000);
+  try{ const st=await run('getState',monthKey,me,token); applyState(st); status(''); cfgLoaded=true; render(); }
+  catch(e){ if(!quiet) status('Não foi possível carregar os dados: '+esc(errMsg(e)),'bad') }
+  finally{ clearTimeout(timer); loading=false }
+}
+function subscribeMonth(mk){
+  if(!mk||mk===monthKey) return;
+  monthKey=mk; entries=[]; extraMonths={};
+  refresh();
+}
+function allEntries(){let a=entries.slice();Object.values(extraMonths).forEach(x=>a=a.concat(x));return a}
+function entriesOn(d){return allEntries().filter(e=>e.date===d)}
+
+/* ======================= login ======================= */
+function showLogin(){
+  me=null; token=null; isAdmin=false; pinTarget=null; lsSet('cng_auth',null);
+  $('#nav').classList.add('hidden'); $('#who').classList.add('hidden');
+  showView('login');
+  renderPeople();
+}
+function renderPeople(){
+  const p=$('#people');
+  if(!cfgLoaded){p.innerHTML='<p class="muted">Carregando equipe…</p>';return}
+  p.innerHTML = team().map(t=>`<button class="person" data-n="${esc(t.name)}">${avatar(t.name)}<div><b>${esc(t.name)}</b><small>${esc(t.role||(t.plats||[]).join(', '))}</small></div></button>`).join('')
+    + `<button class="person" data-n="Gestor"><span class="av" style="background:#14171c">★</span><div><b>Gestor</b><small>Ajustes e correções</small></div></button>`;
+  p.querySelectorAll('.person').forEach(b=>b.onclick=()=>pickPerson(b.dataset.n));
+  if(!pinTarget){ $('#pinBox').classList.add('hidden'); p.classList.remove('hidden'); }
+}
+function pickPerson(n){
+  pinTarget=n; $('#people').classList.add('hidden'); $('#pinBox').classList.remove('hidden');
+  const has=!!pins[n]||n==='Gestor';
+  $('#pinLabel').textContent = n==='Gestor'?'Senha do gestor':has?`PIN de ${n}`:`Primeiro acesso de ${n}: crie um PIN de 4 a 6 números`;
+  $('#pin').setAttribute('inputmode',n==='Gestor'?'text':'numeric'); $('#pin').maxLength=n==='Gestor'?60:6;
+  $('#pinGo').textContent = has?'Entrar':'Criar PIN e entrar';
+  $('#pin').value=''; $('#pinErr').textContent=''; $('#pin').focus();
+}
+async function doLogin(){
+  const v=$('#pin').value.trim();
+  if(pinTarget!=='Gestor' && !/^\d{4,6}$/.test(v)){ $('#pinErr').textContent='Use de 4 a 6 números.'; return }
+  $('#pinGo').disabled=true; $('#pinErr').textContent='Verificando…';
+  try{
+    const r=await run('login',pinTarget,v);
+    if(!r.ok){ $('#pinErr').textContent=r.msg||'Não foi possível entrar.'; return }
+    me=pinTarget; token=r.token; isAdmin=!!r.admin;
+    lsSet('cng_auth',JSON.stringify({me,token}));
+    enterApp(); refresh(true);
+  }catch(e){ $('#pinErr').textContent=errMsg(e) }
+  finally{ $('#pinGo').disabled=false }
+}
+function enterApp(){
+  $('#nav').classList.remove('hidden'); $('#who').classList.remove('hidden');
+  $('#who').innerHTML = `${avatar(me)}<b>${esc(me)}</b><button id="logout">Sair</button>`;
+  $('#logout').onclick=showLogin;
+  $('#navAjustes').classList.toggle('hidden',!isAdmin);
+  resetForm();
+  const h=(location.hash||'').slice(1);
+  showView(['registrar','grade','equipe','historico','ajustes'].includes(h)&&(h!=='ajustes'||isAdmin)?h:'registrar');
+}
+
+/* ======================= navegação ======================= */
+function showView(v){
+  view=v;
+  document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
+  $('#v-'+v).classList.remove('hidden');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  if(v!=='login'){try{history.replaceState(null,'','#'+v)}catch(e){}}
+  if(v==='grade') subscribeMonth(gDate.slice(0,7));
+  if(v==='equipe') subscribeMonth(eDate.slice(0,7));
+  if(v==='historico') subscribeMonth($('#hMonth').value);
+  if(v==='registrar') subscribeMonth($('#fDate').value.slice(0,7));
+  if(v==='ajustes') renderSettings();
+  render();
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showView(b.dataset.v));
+
+/* ======================= formulário ======================= */
+let fAtiv='Postagem', fPlats=[];
+function buildChips(el,items,sel,multi,onch){
+  el.innerHTML = items.map(i=>{const id=i.id||i;return `<button type="button" class="chip ${(multi?sel.includes(id):sel===id)?'on':''}" data-i="${esc(id)}">${i.c?platDot(id):''}${esc(id)}</button>`}).join('');
+  el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>onch(b.dataset.i));
+}
+function renderFormChips(){
+  buildChips($('#fAtiv'),ATIVS,fAtiv,false,v=>{fAtiv=v;renderFormChips();fillSlots()});
+  buildChips($('#fPlat'),PLATS,fPlats,true,v=>{fPlats=fPlats.includes(v)?fPlats.filter(x=>x!==v):[...fPlats,v];renderFormChips()});
+}
+function fillSlots(keep){
+  const d=$('#fDate').value||today();
+  const s=slotsFor(d); const cur=keep!=null?keep:(fAtiv==='Postagem'?(currentSlot(d)||''):'');
+  const opts=['',...s]; if(keep&&!opts.includes(keep)) opts.push(keep);
+  $('#fSlot').innerHTML = opts.map(x=>`<option value="${x}" ${x===cur?'selected':''}>${x||'Sem horário (meta do dia / produção)'}</option>`).join('');
+}
+function resetForm(){
+  editingId=null;
+  $('#formTitle').textContent='Registrar o que foi feito';
+  $('#fSave').textContent='Salvar registro'; $('#fCancel').classList.add('hidden');
+  $('#fDate').value=today();
+  const m=member(me);
+  fAtiv = (me==='Vitor')?'Vídeo (matéria)':(me==='Bruno')?'Trabalho extra':'Postagem';
+  fPlats = (m&&m.plats&&m.plats.length<=2)?m.plats.slice():[];
+  $('#fTipo').innerHTML = TIPOS.map(t=>`<option>${t}</option>`).join('');
+  $('#fStatus').value='Publicado';
+  ['#fPauta','#fLink','#fObs'].forEach(s=>$(s).value='');
+  renderFormChips(); fillSlots();
+}
+function startEdit(e){
+  editingId=e.id; showView('registrar');
+  $('#formTitle').textContent='Editando registro';
+  $('#fSave').textContent='Salvar alterações'; $('#fCancel').classList.remove('hidden');
+  $('#fDate').value=e.date; fAtiv=e.ativ||'Postagem'; fPlats=(e.plats||[]).slice();
+  renderFormChips(); fillSlots(e.slot||'');
+  $('#fSlot').value=e.slot||'';
+  $('#fTipo').value=e.tipo||'Notícia Geral'; $('#fStatus').value=e.status||'Publicado';
+  $('#fPauta').value=e.pauta||''; $('#fLink').value=e.link||''; $('#fObs').value=e.obs||'';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+$('#fCancel').onclick=resetForm;
+$('#fDate').onchange=()=>{fillSlots();subscribeMonth($('#fDate').value.slice(0,7))};
+$('#form').onsubmit=async ev=>{
+  ev.preventDefault();
+  const date=$('#fDate').value, slot=$('#fSlot').value;
+  if(!date){toast('Escolha a data');return}
+  if(fAtiv==='Postagem'&&!fPlats.length){toast('Marque onde foi postado');return}
+  const needSlot=fPlats.filter(p=>pc(p).mode==='grade');
+  if(fAtiv==='Postagem'&&needSlot.length&&!slot){toast('Escolha o horário da grade ('+needSlot.join(', ')+')');return}
+  const pauta=$('#fPauta').value.trim(); if(!pauta){toast('Escreva a pauta');return}
+  const link=$('#fLink').value.trim();
+  if(link&&!safeUrl(link)){toast('Link inválido');return}
+  const n=nowParts();
+  const body={
+    date, slot, ativ:fAtiv, plats:fPlats.slice(), tipo:$('#fTipo').value, status:$('#fStatus').value,
+    pauta, link, obs:$('#fObs').value.trim(), autor:me,
+    regAt:`${n.date} ${String(n.h).padStart(2,'0')}:${String(n.m).padStart(2,'0')}`
+  };
+  $('#fSave').disabled=true;
+  try{
+    if(editingId) body.id=editingId;
+    await run('saveEntry',me,token,body);
+    toast(editingId?'Registro atualizado':'Registrado ✓');
+    resetForm(); await refresh();
+  }catch(e){ toast('Erro ao salvar: '+errMsg(e)) }
+  finally{$('#fSave').disabled=false}
+};
+async function removeEntry(e){
+  openModal(`<h3>Excluir registro?</h3><p>${esc(e.slot||'')} · ${esc(e.pauta)}</p>
+   <div class="row"><span class="sp"></span><button class="btn ghost" id="mNo">Cancelar</button><button class="btn red" id="mYes">Excluir</button></div>`);
+  $('#mNo').onclick=closeModal;
+  $('#mYes').onclick=async()=>{
+    closeModal();
+    try{await run('deleteEntry',me,token,e.id);toast('Excluído');refresh()}catch(x){toast('Não foi possível excluir: '+errMsg(x))}
+  };
+}
+function openModal(h){$('#modalBody').innerHTML=h;$('#modal').classList.remove('hidden')}
+function closeModal(){$('#modal').classList.add('hidden')}
+$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
+
+/* ======================= renders ======================= */
+function entryRow(e,opts={}){
+  const mine = e.autor===me || isAdmin;
+  const link=safeUrl(e.link);
+  return `<div class="entry">
+    <div class="tm">${e.slot?esc(e.slot):`<span class="muted">${esc((e.regAt||'').slice(11)||'—')}</span>`}${opts.showDate?`<div class="small muted">${fmtD(e.date)}</div>`:''}</div>
+    ${avatar(e.autor)}
+    <div class="body">
+      <div class="ti">${esc(e.pauta)}</div>
+      <div class="small muted row" style="gap:6px;margin-top:3px">
+        <span>${esc(e.autor)}</span>·<span>${esc(e.ativ)}</span>·<span>${esc(e.tipo)}</span>
+        ${(e.plats||[]).map(p=>`<span class="pill">${platDot(p)} ${esc(p)}</span>`).join('')}
+        <span class="pill ${e.status==='Agendado'?'info':'ok'}">${esc(e.status)}</span>
+        ${link?`<a href="${esc(link)}" target="_blank" rel="noopener">abrir link ↗</a>`:''}
+      </div>
+      ${e.obs?`<div class="small" style="margin-top:3px">${esc(e.obs)}</div>`:''}
+    </div>
+    ${mine?`<div class="acts"><button class="btn ghost sm" data-ed="${e.id}">Editar</button><button class="btn ghost sm" data-del="${e.id}">✕</button></div>`:''}
+  </div>`;
+}
+function wireRows(root){
+  root.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>startEdit(allEntries().find(x=>x.id===b.dataset.ed)));
+  root.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>removeEntry(allEntries().find(x=>x.id===b.dataset.del)));
+}
+function bySlot(a,b){return (a.slot||'99').localeCompare(b.slot||'99')||(a.createdAt||0)-(b.createdAt||0)}
+
+function pc(p){return (cfg.platCfg||{})[p]||{mode:'livre'}}
+function gradePlats(){return PLATS.map(p=>p.id).filter(p=>pc(p).mode==='grade')}
+function metaPlats(){return PLATS.map(p=>p.id).filter(p=>pc(p).mode==='meta')}
+function quota(p,d){const c=pc(p);return isReduced(d)?(+c.we||0):(+c.wd||0)}
+function postsOn(d,p){return entriesOn(d).filter(e=>e.ativ==='Postagem'&&(e.plats||[]).includes(p))}
+// quanto da meta já deveria ter saído até agora (ritmo linear entre o 1º e o último horário)
+function expectedSoFar(p,d){
+  const q=quota(p,d); const n=nowParts();
+  if(d<n.date) return q; if(d>n.date) return 0;
+  const g=isReduced(d)?cfg.weekend:cfg.weekday; const st=+g.start*60, en=(+g.end+1)*60, now=n.h*60+n.m;
+  if(now<=st) return 0; if(now>=en) return q;
+  return Math.floor(q*(now-st)/(en-st));
+}
+function metaInfo(p,d){
+  const posts=postsOn(d,p), q=quota(p,d), exp=expectedSoFar(p,d), n=posts.length;
+  const cls = n>=q?'ok':n>=exp?'info':(d<today()?'bad':'warn');
+  const txt = n>=q?'meta batida':n>=exp?'no ritmo':(d<today()?'meta não batida':`atrás do ritmo (esperado ${exp})`);
+  return {posts,q,exp,n,cls,txt};
+}
+function meterBar(v,m,cls){const col=cls==='ok'?'var(--ok)':cls==='bad'?'var(--bad)':cls==='info'?'var(--info)':'var(--warn)';
+  return `<div class="meter"><i style="width:${m?Math.min(100,v/m*100):0}%;background:${col}"></i></div>`}
+
+function slotCoverage(d,slot){
+  const es=entriesOn(d).filter(e=>e.slot===slot&&e.ativ==='Postagem');
+  const res={};
+  PLATS.forEach(p=>{const hit=es.filter(e=>(e.plats||[]).includes(p.id));res[p.id]=hit});
+  return res;
+}
+function postLine(h){const l=safeUrl(h.link);return `<span class="t" title="${esc(h.pauta)}">${l?`<a href="${esc(l)}" target="_blank" rel="noopener">`:''}${esc(h.autor)}: ${esc(h.pauta)}${l?'</a>':''}</span>`}
+function cellHtml(d,slot,p,hits){
+  if(hits.length){
+    const pub=hits.some(h=>h.status!=='Agendado');
+    return `<div class="cell ${pub?'done':'sched'}">${hits.map(postLine).join('')}</div>`;
+  }
+  const passed=slotPassed(d,slot);
+  return `<div class="cell ${passed?'miss':'wait'}">${passed?'Sem post':'Aguardando'}<button class="add" data-add="${slot}" data-p="${p}">+ registrar</button></div>`;
+}
+function gradeStats(d){
+  const s=slotsFor(d); let need=0,done=0,late=0; const gp=gradePlats();
+  s.forEach(slot=>{const cov=slotCoverage(d,slot);
+    gp.forEach(p=>{
+      if(cov[p]&&cov[p].length){need++;done++}
+      else if(slotPassed(d,slot)){need++;late++}
+    })});
+  return {need,done,late,total:s.length*gp.length};
+}
+function pctCls(p){return p>=90?'ok':p>=70?'warn':'bad'}
+function renderGrade(){
+  const d=gDate; $('#gDate').value=d;
+  const hol=holidayOf(d), red=isReduced(d);
+  $('#dayKind').innerHTML=`<span class="pill ${red?'warn':'info'}">${hol?esc(hol.name)+' · ':red?'Fim de semana · ':'Dia útil · '}${gradePlats().join('/')||'grade'} ${red?'2 em 2h':'1 em 1h'}</span>`;
+  const st=gradeStats(d); const es=entriesOn(d);
+  const pct=st.need?Math.round(st.done/st.need*100):null;
+  let k='';
+  gradePlats().forEach(p=>{
+    k+=`<div class="kpi"><div class="l">${platDot(p)} ${p} · grade</div><div class="v" style="color:${pct==null?'inherit':`var(--${pctCls(pct)})`}">${st.done}<span class="muted small"> / ${slotsFor(d).length}</span></div>
+      <div class="small ${st.late?'':'muted'}" style="${st.late?'color:var(--bad);font-weight:600':''}">${st.late?st.late+' horário(s) em atraso':pct==null?'ainda não começou':'em dia'}</div></div>`;
+  });
+  metaPlats().forEach(p=>{const m=metaInfo(p,d);
+    k+=`<div class="kpi"><div class="l">${platDot(p)} ${p} · meta</div><div class="v">${m.n}<span class="muted small"> / ${m.q}</span></div>${meterBar(m.n,m.q,m.cls)}<div class="small" style="margin-top:4px"><span class="pill ${m.cls}">${m.txt}</span></div></div>`;
+  });
+  k+=`<div class="kpi"><div class="l">Vídeos produzidos</div><div class="v">${es.filter(e=>e.ativ==='Vídeo (matéria)').length}</div><div class="small muted">${es.filter(e=>e.ativ==='Trabalho extra').length} trabalho(s) extra(s)</div></div>`;
+  $('#gKpis').innerHTML=k;
+
+  const cur=currentSlot(d); const gp=gradePlats(); const mp=PLATS.map(p=>p.id).filter(p=>!gp.includes(p));
+  let h=`<thead><tr><th>Horário</th>${gp.map(p=>`<th>${platDot(p)} ${p}</th>`).join('')}<th>Outras redes neste horário</th></tr></thead><tbody>`;
+  slotsFor(d).forEach(slot=>{
+    const cov=slotCoverage(d,slot);
+    const others=mp.flatMap(p=>cov[p].map(e=>({p,e})));
+    h+=`<tr class="${slot===cur?'now':''}"><td class="h">${slot}${slot===cur?'<div class="small" style="color:var(--warn)">agora</div>':''}</td>${gp.map(p=>`<td>${cellHtml(d,slot,p,cov[p])}</td>`).join('')}
+      <td>${others.length?`<div class="chips">${others.map(o=>`<span class="pill" title="${esc(o.e.pauta)}">${platDot(o.p)} ${o.p} · ${esc(o.e.autor)}</span>`).join('')}</div>`:'<span class="muted">—</span>'}</td></tr>`;
+  });
+  const off=es.filter(e=>e.ativ==='Postagem'&&(!e.slot||!slotsFor(d).includes(e.slot)));
+  if(off.length) h+=`<tr><td class="h">Sem horário</td><td colspan="${gp.length+1}"><div class="chips">${off.map(e=>`<span class="pill" title="${esc(e.pauta)}">${(e.plats||[]).map(platDot).join('')} ${esc(e.slot||'')} ${esc(e.autor)}: ${esc(e.pauta.slice(0,40))}</span>`).join('')}</div></td></tr>`;
+  h+='</tbody>';
+  $('#gTable').innerHTML=h;
+  $('#gTable').querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{
+    resetForm(); showView('registrar'); $('#fDate').value=d; fAtiv='Postagem'; fPlats=[b.dataset.p];
+    renderFormChips(); fillSlots(b.dataset.add); $('#fSlot').value=b.dataset.add; $('#fPauta').focus();
+  });
+  // listas das metas
+  $('#gMetas').innerHTML = metaPlats().map(p=>{const m=metaInfo(p,d);
+    return `<div class="card"><div class="row"><h3>${platDot(p)} ${p}</h3><span class="sp"></span><b>${m.n} / ${m.q}</b></div>${meterBar(m.n,m.q,m.cls)}
+      <div style="margin-top:8px">${m.posts.length?m.posts.sort(bySlot).map(e=>{const l=safeUrl(e.link);return `<div class="small" style="padding:4px 0;border-bottom:1px solid var(--line)"><b>${esc(e.slot||e.regAt.slice(11))}</b> · ${esc(e.autor)} · ${l?`<a href="${esc(l)}" target="_blank" rel="noopener">${esc(e.pauta)}</a>`:esc(e.pauta)}${e.status==='Agendado'?' <span class="pill info">agendado</span>':''}</div>`}).join(''):'<p class="small muted">Nenhum post ainda.</p>'}</div></div>`}).join('');
+}
+function renderRegistrar(){
+  const d=today(); const cur=currentSlot(d); const gp=gradePlats();
+  let html='';
+  if(cur){
+    const cov=slotCoverage(d,cur);
+    const missing=gp.filter(p=>!cov[p].length);
+    $('#nowSlotPill').innerHTML=`<span class="pill ${missing.length?(slotPassed(d,cur)?'bad':'warn'):'ok'}">${cur}</span>`;
+    html += gp.map(p=>`<div class="row" style="justify-content:space-between;padding:4px 0"><span>${platDot(p)} ${p} <span class="small muted">(grade)</span></span>${cov[p].length?`<span class="pill ok">✓ ${esc(cov[p].map(x=>x.autor).join(', '))}</span>`:`<span class="pill ${slotPassed(d,cur)?'bad':'warn'}">pendente</span>`}</div>`).join('')
+      + (()=>{const s=slotsFor(d);const i=s.indexOf(cur);return s[i+1]?`<p class="small muted" style="margin:2px 0 8px">Próximo horário: <b>${s[i+1]}</b></p>`:'<p class="small muted" style="margin:2px 0 8px">Último horário do dia.</p>'})();
+  } else {
+    const s=slotsFor(d);
+    $('#nowSlotPill').innerHTML='';
+    html+=`<p class="muted" style="margin:0 0 8px">Fora do horário da grade. ${nowParts().h<+s[0].slice(0,2)?'Primeiro post às <b>'+s[0]+'</b>.':'A grade de hoje terminou.'}</p>`;
+  }
+  html += metaPlats().map(p=>{const m=metaInfo(p,d);return `<div style="padding:5px 0"><div class="row small" style="justify-content:space-between"><span>${platDot(p)} ${p} <span class="muted">(meta do dia)</span></span><span><b>${m.n} / ${m.q}</b> <span class="pill ${m.cls}">${m.txt}</span></span></div>${meterBar(m.n,m.q,m.cls)}</div>`}).join('');
+  $('#nowSlot').innerHTML=html;
+  const mine=entriesOn(d).filter(e=>e.autor===me).sort(bySlot);
+  $('#myCount').textContent=mine.length;
+  $('#myList').innerHTML = mine.length?mine.map(e=>entryRow(e)).join(''):'<p class="muted">Nada registrado ainda hoje.</p>';
+  wireRows($('#myList'));
+}
+function personDay(n,d){
+  const es=entriesOn(d).filter(e=>e.autor===n);
+  const c={}; ATIVS.forEach(a=>c[a]=0);
+  es.forEach(e=>c[e.ativ]=(c[e.ativ]||0)+1);
+  const plats={}; es.filter(e=>e.ativ==='Postagem').forEach(e=>(e.plats||[]).forEach(p=>plats[p]=(plats[p]||0)+1));
+  return {es,c,plats};
+}
+function renderEquipe(){
+  const d=eDate; $('#eDate').value=d;
+  $('#eCards').innerHTML = team().map(t=>{
+    const pd=personDay(t.name,d);
+    const metaV=+t.metaVideos||0, metaP=+t.metaPosts||0;
+    const meter=(v,m,l)=>m?`<div><div class="row small" style="justify-content:space-between"><span>${l}</span><b>${v} / ${m}</b></div>${meterBar(v,m,v>=m?'ok':'warn')}</div>`:'';
+    const extra=['Vídeo (matéria)','Captação de vídeo','Edição de vídeo','Trabalho extra','Outro'].filter(a=>pd.c[a]&&!(a==='Vídeo (matéria)'&&metaV));
+    return `<div class="card tm-card">
+      <div class="tm-head">${avatar(t.name)}<div><b>${esc(t.name)}</b><div class="small muted">${esc(t.role||'')}</div></div><span class="sp"></span><span class="pill">${pd.es.length} registros</span></div>
+      ${meter(pd.c['Vídeo (matéria)'],metaV,'Vídeos (meta diária)')}
+      ${meter(pd.c.Postagem,metaP,'Postagens (meta diária)')}
+      <div class="row small" style="gap:6px">
+        ${pd.c.Postagem?`<span class="pill">Postagens: ${pd.c.Postagem}</span>`:''}
+        ${extra.map(a=>`<span class="pill">${esc(a)}: ${pd.c[a]}</span>`).join('')}
+        ${Object.entries(pd.plats).map(([p,n])=>`<span class="pill">${platDot(p)} ${p}: ${n}</span>`).join('')}
+        ${!pd.es.length?'<span class="muted">Nenhum registro neste dia.</span>':''}
+      </div>
+      <div class="small muted">Cuida de: ${esc((t.plats||[]).join(', ')||'—')}</div>
+    </div>`}).join('');
+  const days=[...Array(7)].map((_,i)=>addDays(d,i-6));
+  let h=`<table class="simple"><tr><th>Funcionário</th>${days.map(x=>`<th>${DOWS[dow(x)].slice(0,3)} ${fmtD(x)}</th>`).join('')}<th>Total</th></tr>`;
+  team().forEach(t=>{
+    let tot=0;
+    h+=`<tr><td><b>${esc(t.name)}</b></td>${days.map(x=>{const pd=personDay(t.name,x);tot+=pd.es.length;
+      const v=pd.c['Vídeo (matéria)'];const mv=+t.metaVideos||0;
+      return `<td>${pd.es.length||'<span class="muted">0</span>'}${mv?` <span class="pill ${v>=mv?'ok':'bad'}" title="vídeos">${v}/${mv}🎥</span>`:''}</td>`}).join('')}<td><b>${tot}</b></td></tr>`;
+  });
+  h+=`<tr><th colspan="${days.length+2}" style="padding-top:14px">Redes</th></tr>`;
+  gradePlats().forEach(p=>{
+    h+=`<tr><td>${platDot(p)} ${p} <span class="small muted">grade</span></td>${days.map(x=>{const s=gradeStats(x);const q=s.need?Math.round(s.done/s.need*100):null;return `<td>${q==null?'—':`<span class="pill ${pctCls(q)}">${s.done}/${slotsFor(x).length}</span>`}</td>`}).join('')}<td></td></tr>`;
+  });
+  metaPlats().forEach(p=>{
+    let tot=0;
+    h+=`<tr><td>${platDot(p)} ${p} <span class="small muted">meta</span></td>${days.map(x=>{const m=metaInfo(p,x);tot+=m.n;return `<td>${x>today()?'—':`<span class="pill ${m.cls}">${m.n}/${m.q}</span>`}</td>`}).join('')}<td><b>${tot}</b></td></tr>`;
+  });
+  h+='</table>';
+  $('#eWeek').innerHTML=h;
+}
+function histFiltered(){
+  const day=$('#hDay').value, pe=$('#hPerson').value, pl=$('#hPlat').value, at=$('#hAtiv').value, q=$('#hQ').value.trim().toLowerCase();
+  return entries.filter(e=>(!day||e.date===day)&&(!pe||e.autor===pe)&&(!pl||(e.plats||[]).includes(pl))&&(!at||e.ativ===at)
+    &&(!q||[e.pauta,e.link,e.obs,e.tipo].join(' ').toLowerCase().includes(q)))
+    .sort((a,b)=>b.date.localeCompare(a.date)||bySlot(a,b));
+}
+function renderHist(){
+  const mk=$('#hMonth').value;
+  const [y,m]=mk.split('-').map(Number); const nd=new Date(Date.UTC(y,m,0)).getUTCDate();
+  const keepDay=$('#hDay').value;
+  $('#hDay').innerHTML='<option value="">Mês inteiro</option>'+[...Array(nd)].map((_,i)=>{const d=`${mk}-${String(i+1).padStart(2,'0')}`;return `<option value="${d}">${fmtD(d)} · ${DOWS[dow(d)]}</option>`}).join('');
+  $('#hDay').value=keepDay&&keepDay.startsWith(mk)?keepDay:'';
+  const keepP=$('#hPerson').value;
+  $('#hPerson').innerHTML='<option value="">Todos</option>'+team().map(t=>`<option>${esc(t.name)}</option>`).join('');
+  $('#hPerson').value=keepP;
+  const list=histFiltered();
+  $('#hCountTxt').textContent=`${list.length} registro${list.length===1?'':'s'}`;
+  $('#hList').innerHTML = list.length?list.slice(0,400).map(e=>entryRow(e,{showDate:true})).join(''):'<p class="muted">Nenhum registro com esses filtros.</p>';
+  wireRows($('#hList'));
+}
+$('#hPlat').innerHTML+=PLATS.map(p=>`<option>${p.id}</option>`).join('');
+$('#hAtiv').innerHTML+=ATIVS.map(p=>`<option>${p}</option>`).join('');
+['#hDay','#hPerson','#hPlat','#hAtiv'].forEach(s=>$(s).onchange=renderHist);
+$('#hQ').oninput=renderHist;
+$('#hMonth').onchange=()=>{subscribeMonth($('#hMonth').value);renderHist()};
+$('#hCsv').onclick=async()=>{
+  const cols=['Data','Dia','Horário','Atividade','Redes','Tipo','Pauta','Responsável','Link','Status','Observações','Registrado em'];
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const rows=histFiltered().slice().reverse().map(e=>[fmtD(e.date)+'/'+e.date.slice(0,4),DOWS[dow(e.date)],e.slot,e.ativ,(e.plats||[]).join(' + '),e.tipo,e.pauta,e.autor,e.link,e.status,e.obs,e.regAt].map(q).join(','));
+  const csv=[cols.map(q).join(','),...rows].join('\n');
+  try{await navigator.clipboard.writeText(csv);toast('CSV copiado — cole numa planilha')}
+  catch(e){openModal(`<h3>Copie o CSV</h3><textarea style="min-height:240px">${esc(csv)}</textarea><div class="row" style="margin-top:8px"><span class="sp"></span><button class="btn" onclick="closeModal()">Fechar</button></div>`)}
+};
+
+/* ======================= ajustes ======================= */
+let draft=null;
+const toT=h=>hh(h), fromT=t=>+(t||'0').slice(0,2);
+function renderSettings(){
+  draft=JSON.parse(JSON.stringify(cfg));
+  $('#sWdS').value=toT(draft.weekday.start); $('#sWdE').value=toT(draft.weekday.end); $('#sWdStep').value=draft.weekday.step;
+  $('#sWeS').value=toT(draft.weekend.start); $('#sWeE').value=toT(draft.weekend.end); $('#sWeStep').value=draft.weekend.step;
+  renderSettingsLists();
+}
+function renderSettingsLists(){
+  draft.platCfg=draft.platCfg||{};
+  $('#sPlats').innerHTML='<tr><th>Rede</th><th>Regra</th><th>Dia útil</th><th>Fim de sem./feriado</th></tr>'+PLATS.map(p=>{const c=draft.platCfg[p.id]||(draft.platCfg[p.id]={mode:'livre'});
+    return `<tr><td>${platDot(p.id)} ${p.id}</td><td><select data-pm="${p.id}"><option value="grade" ${c.mode==='grade'?'selected':''}>Grade por horário</option><option value="meta" ${c.mode==='meta'?'selected':''}>Meta diária</option><option value="livre" ${c.mode==='livre'?'selected':''}>Livre</option></select></td>
+      <td>${c.mode==='meta'?`<input type="number" min="0" data-wd="${p.id}" value="${+c.wd||0}" style="width:70px"> posts`:'—'}</td><td>${c.mode==='meta'?`<input type="number" min="0" data-we="${p.id}" value="${+c.we||0}" style="width:70px"> posts`:'—'}</td></tr>`}).join('');
+  $('#sPlats').querySelectorAll('[data-pm]').forEach(el=>el.onchange=()=>{draft.platCfg[el.dataset.pm].mode=el.value;renderSettingsLists()});
+  $('#sPlats').querySelectorAll('[data-wd]').forEach(el=>el.oninput=()=>draft.platCfg[el.dataset.wd].wd=+el.value||0);
+  $('#sPlats').querySelectorAll('[data-we]').forEach(el=>el.oninput=()=>draft.platCfg[el.dataset.we].we=+el.value||0);
+  const hs=(draft.holidays||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  $('#sHols').innerHTML = hs.map(h=>`<tr><td>${fmtD(h.date)}/${h.date.slice(0,4)}</td><td>${esc(h.name)}</td><td style="text-align:right"><button class="btn ghost sm" data-hd="${h.date}">✕</button></td></tr>`).join('')||'<tr><td class="muted">Nenhum feriado.</td></tr>';
+  $('#sHols').querySelectorAll('[data-hd]').forEach(b=>b.onclick=()=>{draft.holidays=draft.holidays.filter(x=>x.date!==b.dataset.hd);renderSettingsLists()});
+  $('#sTeam').innerHTML = draft.team.map((t,i)=>`<div class="card" style="padding:12px;margin-bottom:10px">
+    <div class="row">${avatar(t.name)}<b>${esc(t.name)}</b><span class="sp"></span>
+      ${pins[t.name]?`<button class="btn ghost sm" data-rp="${i}">Resetar PIN</button>`:'<span class="pill">sem PIN</span>'}
+      <button class="btn ghost sm" data-rm="${i}">Remover</button></div>
+    <label class="f" style="margin-top:8px">Função<input type="text" data-role="${i}" value="${esc(t.role||'')}"></label>
+    <div class="chips" style="margin-top:8px" data-pl="${i}"></div>
+    <div class="row" style="margin-top:8px">
+      <label class="f" style="flex:1">Meta de vídeos/dia<input type="number" min="0" data-mv="${i}" value="${+t.metaVideos||0}"></label>
+      <label class="f" style="flex:1">Meta de postagens/dia<input type="number" min="0" data-mp="${i}" value="${+t.metaPosts||0}"></label>
+    </div></div>`).join('');
+  draft.team.forEach((t,i)=>buildChips($(`[data-pl="${i}"]`),PLATS,t.plats||[],true,v=>{t.plats=(t.plats||[]).includes(v)?t.plats.filter(x=>x!==v):[...(t.plats||[]),v];renderSettingsLists()}));
+  $('#sTeam').querySelectorAll('[data-role]').forEach(el=>el.oninput=()=>draft.team[+el.dataset.role].role=el.value);
+  $('#sTeam').querySelectorAll('[data-mv]').forEach(el=>el.oninput=()=>draft.team[+el.dataset.mv].metaVideos=+el.value||0);
+  $('#sTeam').querySelectorAll('[data-mp]').forEach(el=>el.oninput=()=>draft.team[+el.dataset.mp].metaPosts=+el.value||0);
+  $('#sTeam').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{draft.team.splice(+b.dataset.rm,1);renderSettingsLists()});
+  $('#sTeam').querySelectorAll('[data-rp]').forEach(b=>b.onclick=async()=>{
+    const n=draft.team[+b.dataset.rp].name; const np={...pins}; delete np[n];
+    try{await run('resetPin',me,token,n);pins=np;toast('PIN de '+n+' resetado');renderSettingsLists()}catch(e){toast('Erro: '+errMsg(e))}
+  });
+}
+$('#sHolAdd').onclick=()=>{const d=$('#sHolDate').value,n=$('#sHolName').value.trim()||'Feriado';if(!d)return;
+  draft.holidays=(draft.holidays||[]).filter(x=>x.date!==d).concat({date:d,name:n});$('#sHolDate').value='';$('#sHolName').value='';renderSettingsLists()};
+$('#sAdd').onclick=()=>{const n=$('#sNewName').value.trim();if(!n||draft.team.some(t=>t.name===n))return;draft.team.push({name:n,role:'',plats:[],metaVideos:0,metaPosts:0});$('#sNewName').value='';renderSettingsLists()};
+$('#sSave').onclick=async()=>{
+  draft.weekday={start:fromT($('#sWdS').value),end:fromT($('#sWdE').value),step:Math.max(1,+$('#sWdStep').value||1)};
+  draft.weekend={start:fromT($('#sWeS').value),end:fromT($('#sWeE').value),step:Math.max(1,+$('#sWeStep').value||2)};
+  try{await run('saveConfig',me,token,draft);toast('Ajustes salvos');refresh()}catch(e){toast('Erro ao salvar ajustes: '+errMsg(e))}
+};
+
+/* ======================= render geral ======================= */
+function render(){
+  tick();
+  if(!me) { if(view==='login'&&!pinTarget&&cfgLoaded) renderPeople(); return }
+  if(view==='registrar') renderRegistrar();
+  if(view==='grade') renderGrade();
+  if(view==='equipe') renderEquipe();
+  if(view==='historico') renderHist();
+}
+
+$('#gDate').onchange=()=>{gDate=$('#gDate').value||today();subscribeMonth(gDate.slice(0,7));render()};
+$('#gPrev').onclick=()=>{gDate=addDays(gDate,-1);subscribeMonth(gDate.slice(0,7));render()};
+$('#gNext').onclick=()=>{gDate=addDays(gDate,1);subscribeMonth(gDate.slice(0,7));render()};
+$('#gToday').onclick=()=>{gDate=today();subscribeMonth(gDate.slice(0,7));render()};
+$('#eDate').onchange=()=>{eDate=$('#eDate').value||today();subscribeMonth(eDate.slice(0,7));render()};
+$('#pinGo').onclick=doLogin;
+$('#pin').onkeydown=e=>{if(e.key==='Enter')doLogin()};
+$('#pinBack').onclick=()=>{pinTarget=null;$('#pinBox').classList.add('hidden');$('#people').classList.remove('hidden')};
+
+/* ======================= boot ======================= */
+gDate=today(); eDate=today();
+$('#hMonth').value=today().slice(0,7);
+$('#fDate').value=today();
+tick(); setInterval(()=>{tick(); if(me&&(view==='registrar'||view==='grade'))render()},30000);
+showView('login'); $('#people').innerHTML='<p class="muted">Conectando…</p>';
+
+(async()=>{
+  monthKey=today().slice(0,7);
+  try{const a=JSON.parse(lsGet('cng_auth')||'null'); if(a&&a.me&&a.token){me=a.me;token=a.token}}catch(e){}
+  try{
+    const st=await run('getState',monthKey,me,token);
+    const wasMe=me;
+    applyState(st); cfgLoaded=true;
+    if(wasMe && st.auth){ me=wasMe; enterApp(); } else { me=null; showLogin(); }
+    if(!team().length) status('Nenhum funcionário cadastrado. Entre como Gestor e adicione a equipe em Ajustes.');
+  }catch(e){ status('Não foi possível conectar: '+esc(errMsg(e)),'bad'); $('#people').innerHTML=''; }
+  setInterval(()=>{ if(document.visibilityState!=='hidden') refresh(true) },45000);
+})();
+</script>
+</body>
+</html>

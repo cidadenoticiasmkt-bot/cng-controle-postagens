@@ -50,6 +50,20 @@ function doGet() {
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
+/** API usada pelo site no GitHub Pages (o mesmo sistema, servido de fora do Google). */
+function doPost(e) {
+  let out;
+  try {
+    const req = JSON.parse(e.postData.contents);
+    const fns = {getState: getState, login: login, saveEntry: saveEntry, deleteEntry: deleteEntry, saveConfig: saveConfig, resetPin: resetPin};
+    if (!fns[req.fn]) throw new Error('Função inválida.');
+    out = {ok: true, result: fns[req.fn].apply(null, req.args || [])};
+  } catch (err) {
+    out = {ok: false, error: String(err && err.message || err)};
+  }
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+
 /** Rode uma vez pelo editor (botão Executar) para criar as abas e autorizar. */
 function setup() { ensureSheets_(); }
 
