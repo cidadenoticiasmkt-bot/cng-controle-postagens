@@ -110,6 +110,45 @@ input:focus,select:focus,textarea:focus{outline:2px solid #c6e43c88;border-color
 .ramp{display:flex;align-items:center;gap:3px;margin-top:8px;justify-content:flex-end}.ramp i{width:18px;height:10px;border-radius:2px;display:inline-block}
 ul.ins{margin:8px 0 0;padding-left:18px} ul.ins li{margin:6px 0}
 #tip{position:fixed;z-index:60;background:#0d0d0d;color:#fff;font-size:12px;padding:7px 10px;border-radius:8px;pointer-events:none;display:none;max-width:260px;line-height:1.45;box-shadow:0 6px 18px #0003}
+/* relatórios */
+.rtool{box-shadow:0 4px 14px #0000000d}
+@media (max-width:1380px){.clock{display:none}}
+.pgrid.g3{grid-template-columns:1fr 1fr 1fr}
+@media (max-width:1000px){.pgrid.g3{grid-template-columns:1fr}}
+.chip.sm{padding:4px 10px;font-size:12px}
+.chip .cn{font-weight:500;opacity:.6;font-size:11px}
+.chip.zero{opacity:.45}
+.fbox{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+.fbox summary{cursor:pointer;font-weight:700;font-size:13px}
+.fg{display:grid;grid-template-columns:92px 1fr;gap:8px;align-items:start;margin-top:8px}
+.fg .fl{font-size:12px;font-weight:600;color:var(--ink2);padding-top:5px}
+@media (max-width:760px){.fg{grid-template-columns:1fr}}
+.click{cursor:pointer}
+.pr.click{border-radius:6px;padding:5px 4px}
+.pr.click:hover{background:#f4f6ee}
+.dim{opacity:.32}
+.sel .nm{font-weight:700} .pr.sel{background:#eef6d2}
+.o7{opacity:.7}
+.dl{font-weight:700;font-size:12px} .dl.up{color:var(--ok)} .dl.dn{color:var(--bad)}
+.kpi.hero .dl.up{color:var(--lime)} .kpi.hero .dl.dn{color:#ff8a80}
+.vb{display:flex;gap:3px;height:150px;margin-top:8px}
+.vc{flex:1;display:flex;flex-direction:column;align-items:center;min-width:0;border-radius:5px}
+.vc:hover{background:#f4f6ee}
+.vc .bw{flex:1;width:100%;display:flex;align-items:flex-end;padding:0 2px}
+.vc i{display:block;width:100%;background:#2b2f36;border-radius:4px 4px 0 0;min-height:2px}
+.vc.sel i{background:var(--limeink)}
+.vc .vv{font-size:10.5px;color:var(--ink2);height:14px}
+.vc .vl2{font-size:10.5px;color:var(--mute);margin-top:3px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
+.cal .ch{font-size:10.5px;color:var(--mute);text-align:center;font-weight:600}
+.cal .cd{border-radius:6px;min-height:42px;padding:4px 6px;display:flex;flex-direction:column;justify-content:space-between;font-size:12px}
+.cal .cd small{font-size:11px;align-self:flex-end;font-weight:600}
+.cal .cd.sel{outline:2px solid var(--ink)}
+.cal .cd.hol b::after{content:' •';color:var(--warn)}
+.chart .hit:hover{fill:#0000000a}
+table.rt td{vertical-align:top} table.rt tr.click:hover td{background:#f6f8ef}
+table.rt .pa{min-width:220px} table.rt .nw{white-space:nowrap}
+th.srt{cursor:pointer;user-select:none} th.srt:hover{color:var(--ink)}
 /* login */
 .login .card{padding:0;overflow:hidden}
 .login .lhead{background:#0d0d0d;color:#fff;text-align:center;padding:18px 16px 16px;border-bottom:3px solid var(--lime)}
@@ -173,6 +212,7 @@ table.simple th{color:var(--mute);font-size:12px;text-transform:uppercase}
     <div class="clock" id="clock"></div>
     <nav id="nav" class="hidden">
       <button data-v="painel">Painel</button>
+      <button data-v="relatorios">Relatórios</button>
       <button data-v="registrar">Registrar</button>
       <button data-v="grade">Grade do dia</button>
       <button data-v="equipe">Equipe</button>
@@ -203,6 +243,48 @@ table.simple th{color:var(--mute);font-size:12px;text-transform:uppercase}
         <p class="small muted" id="pinErr"></p>
       </div>
       </div>
+    </div>
+  </section>
+
+  <!-- RELATÓRIOS -->
+  <section id="v-relatorios" class="hidden">
+    <div class="rtool card">
+      <div class="row">
+        <div><h2 id="rTitle">Relatórios</h2><div class="small muted" id="rPrevTxt"></div></div>
+        <span class="sp"></span><span id="rStatus"></span>
+        <div class="seg" id="rMode"><button data-m="mes">Mensal</button><button data-m="per">Por período</button></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="row" id="rMonthBox" style="gap:6px"><button class="btn ghost sm" id="rMPrev">◀</button><input type="month" id="rMonth" style="width:auto"><button class="btn ghost sm" id="rMNext">▶</button></div>
+        <div class="row hidden" id="rRangeBox" style="gap:6px"><label class="f">De<input type="date" id="rFrom" style="width:auto"></label><label class="f">Até<input type="date" id="rTo" style="width:auto"></label></div>
+        <div class="chips" id="rPresets"><button class="chip sm" data-p="7">7 dias</button><button class="chip sm" data-p="30">30 dias</button><button class="chip sm" data-p="mes">Este mês</button><button class="chip sm" data-p="ant">Mês passado</button><button class="chip sm" data-p="90">90 dias</button><button class="chip sm" data-p="ano">Ano</button></div>
+        <span class="sp"></span>
+        <label class="small row" style="gap:6px;cursor:pointer"><input type="checkbox" id="rCmp"> comparar com período anterior</label>
+        <button class="btn ghost sm" id="rReload" title="Buscar dados novos">↻ Atualizar</button>
+      </div>
+      <details class="fbox" id="rFbox"><summary>Filtros <span id="rFCount"></span></summary><div id="rFilters"></div>
+        <label class="f" style="margin-top:8px;max-width:420px">Buscar na pauta, link ou observação<input type="text" id="rQ" placeholder="ex.: Rio Verde, eleição, acidente…"></label></details>
+      <div class="row" id="rActive" style="margin-top:10px;gap:6px"></div>
+    </div>
+    <div class="kpis" id="rKpis" style="margin-top:14px"></div>
+    <div class="pgrid">
+      <div class="card"><h3>Evolução diária<small>publicações por rede · clique num dia para filtrar</small></h3><div id="rLine"></div></div>
+      <div class="card"><h3>Calendário<small>volume por dia</small></h3><div id="rCal"></div></div>
+    </div>
+    <div class="pgrid g3">
+      <div class="card"><h3>Por rede</h3><div id="rRede"></div></div>
+      <div class="card"><h3>Por funcionário</h3><div id="rPessoa"></div></div>
+      <div class="card"><h3>Por atividade</h3><div id="rAtiv"></div></div>
+    </div>
+    <div class="pgrid g3">
+      <div class="card"><h3>Por categoria</h3><div id="rCat"></div></div>
+      <div class="card"><h3>Por dia da semana</h3><div id="rDow"></div><h3 style="margin-top:14px">Por horário</h3><div id="rHour"></div></div>
+      <div class="card"><h3>Qualidade dos registros</h3><div class="small muted" style="margin-top:4px">Status</div><div id="rQual"></div><div class="small muted" style="margin-top:10px">Postagens com link</div><div id="rLink"></div></div>
+    </div>
+    <div class="card sec">
+      <div class="row"><h3>Registros</h3><span class="pill" id="rCount"></span><span class="small muted">clique numa linha para ver ou editar · clique no título da coluna para ordenar</span><span class="sp"></span><button class="btn ghost sm" id="rCsv">⬇ Baixar planilha (CSV)</button></div>
+      <div class="scroll" id="rTable" style="margin-top:8px"></div>
+      <div class="row" id="rPager" style="justify-content:center;margin-top:10px"></div>
     </div>
   </section>
 
@@ -546,7 +628,7 @@ function enterApp(){
   $('#navAjustes').classList.toggle('hidden',!isAdmin);
   resetForm();
   const h=(location.hash||'').slice(1);
-  showView(['painel','registrar','grade','equipe','historico','ajustes'].includes(h)&&(h!=='ajustes'||isAdmin)?h:(isAdmin?'painel':'registrar'));
+  showView(['painel','relatorios','registrar','grade','equipe','historico','ajustes'].includes(h)&&(h!=='ajustes'||isAdmin)?h:(isAdmin?'painel':'registrar'));
 }
 
 /* ======================= navegação ======================= */
@@ -561,6 +643,7 @@ function showView(v){
   if(v==='historico') subscribeMonth($('#hMonth').value);
   if(v==='registrar') subscribeMonth($('#fDate').value.slice(0,7));
   if(v==='painel') subscribeMonth(today().slice(0,7));
+  if(v==='relatorios') openRel();
   if(v==='ajustes') renderSettings();
   render();
 }
@@ -1041,6 +1124,233 @@ function renderPainel(){
   tipOn($('#v-painel'));
 }
 document.querySelectorAll('#pPer button').forEach(b=>b.onclick=()=>{pPer=+b.dataset.p;renderPainel()});
+
+/* ======================= RELATÓRIOS ======================= */
+const R={mode:'mes',month:null,from:null,to:null,cmp:true,q:'',page:0,sort:{k:'date',d:-1},
+  f:{autor:[],plat:[],tipo:[],ativ:[],status:[],link:[],dow:[],hour:[],date:[]}};
+const repCache={}; let repBusy=false;
+const DIMLAB={autor:'Funcionário',plat:'Rede',tipo:'Categoria',ativ:'Atividade',status:'Status',link:'Link',dow:'Dia da semana',hour:'Horário',date:'Dia'};
+function monthsBetween(a,b){const o=[];let m=a.slice(0,7);while(m<=b.slice(0,7)){o.push(m);const [y,mo]=m.split('-').map(Number);m=mo===12?`${y+1}-01`:`${y}-${String(mo+1).padStart(2,'0')}`}return o}
+function lastDay(mk){const [y,m]=mk.split('-').map(Number);return `${mk}-${String(new Date(Date.UTC(y,m,0)).getUTCDate()).padStart(2,'0')}`}
+function daysIn(a,b){const o=[];for(let d=a;d<=b&&o.length<400;d=addDays(d,1))o.push(d);return o}
+function rRange(){return R.mode==='mes'?[R.month+'-01',lastDay(R.month)]:[R.from,R.to]}
+function prevRange(a,b){if(R.mode==='mes'){const pm=addDays(a,-1).slice(0,7);return [pm+'-01',lastDay(pm)]}const n=daysIn(a,b).length;return [addDays(a,-n),addDays(a,-1)]}
+async function ensureMonths(list){
+  for(const m of list){ if(repCache[m]) continue;
+    const st=await run('getState',m,me,token); const pm=addDays(m+'-01',-1).slice(0,7);
+    repCache[m]=(st.entries||[]).filter(e=>e.date.slice(0,7)===m);
+    if(!repCache[pm]) repCache[pm]=(st.entries||[]).filter(e=>e.date.slice(0,7)===pm);
+  }
+}
+function repEntries(a,b){let o=[];monthsBetween(a,b).forEach(m=>o=o.concat(repCache[m]||[]));return o.filter(e=>e.date>=a&&e.date<=b)}
+function hourOf(e){const h=parseInt((e.slot||(e.regAt||'').slice(11)).slice(0,2),10);return isNaN(h)?null:h}
+const linkOf=e=>safeUrl(e.link)?'Com link':'Sem link';
+const DIMS={autor:e=>[e.autor],plat:e=>(e.plats&&e.plats.length?e.plats:['(sem rede)']),tipo:e=>[e.tipo||'—'],ativ:e=>[e.ativ],status:e=>[e.status||'Publicado'],
+  link:e=>[linkOf(e)],dow:e=>[String(dow(e.date))],hour:e=>{const h=hourOf(e);return h==null?[]:[String(h)]},date:e=>[e.date]};
+function fLabel(k,v){return k==='dow'?DOWS[+v]:k==='hour'?hh(+v):k==='date'?fmtD(v):v}
+function rMatch(e,skip){
+  for(const k in R.f){if(k===skip||!R.f[k].length)continue;if(!DIMS[k](e).some(x=>R.f[k].includes(x)))return false}
+  if(R.q){const t=[e.pauta,e.link,e.obs,e.tipo,e.autor].join(' ').toLowerCase();if(!t.includes(R.q))return false}
+  return true;
+}
+function toggleF(k,v){const a=R.f[k];const i=a.indexOf(v);i>=0?a.splice(i,1):a.push(v);R.page=0;renderRel()}
+function kpiSet(list,days){const posts=list.filter(e=>e.ativ==='Postagem');const pub=posts.reduce((a,e)=>a+(e.plats||[]).length,0);
+  const nd=Math.max(1,days.filter(d=>d<=today()).length);
+  return {reg:list.length,pub,avg:Math.round(pub/nd*10)/10,vid:list.filter(e=>e.ativ==='Vídeo (matéria)').length,
+    link:posts.length?Math.round(posts.filter(e=>safeUrl(e.link)).length/posts.length*100):null,ag:list.filter(e=>e.status==='Agendado').length}}
+function delta(cur,prev,pts){if(!R.cmp||prev==null||cur==null)return '';
+  if(pts){const d=cur-prev;return `<span class="dl ${d>0?'up':d<0?'dn':''}">${d>0?'▲':d<0?'▼':'='} ${Math.abs(d)} p.p.</span>`}
+  if(!prev)return cur?'<span class="dl up">▲ novo</span>':'';
+  const d=Math.round((cur-prev)/prev*100);return `<span class="dl ${d>0?'up':d<0?'dn':''}">${d>0?'▲':d<0?'▼':'='} ${Math.abs(d)}%</span>`}
+
+async function openRel(){
+  if(!R.month){R.month=today().slice(0,7);R.to=today();R.from=addDays(today(),-29)}
+  delete repCache[today().slice(0,7)];
+  await loadRel();
+}
+async function loadRel(){
+  if(repBusy) return; repBusy=true;
+  const [a,b]=rRange(); const [pa,pb]=prevRange(a,b);
+  const ms=[...new Set([...monthsBetween(a,b),...(R.cmp?monthsBetween(pa,pb):[])])];
+  if(ms.some(m=>!repCache[m])){ $('#rStatus').innerHTML='<span class="pill">Carregando dados…</span>';
+    try{await ensureMonths(ms)}catch(e){$('#rStatus').innerHTML='<span class="pill bad">Erro: '+esc(errMsg(e))+'</span>';repBusy=false;return} }
+  $('#rStatus').innerHTML=''; repBusy=false; renderRel();
+}
+function hbars(el,dim,items,total,unit){
+  const mx=Math.max(1,...items.map(x=>x.v)); const sel=R.f[dim];
+  el.innerHTML=items.length?items.map(x=>`<div class="pr click ${sel.length&&!sel.includes(x.k)?'dim':''} ${sel.includes(x.k)?'sel':''}" data-k="${esc(x.k)}"
+    data-tip="<b>${esc(x.label)}</b><br>${x.v} ${unit||'registros'}${total?` · ${Math.round(x.v/total*100)}%`:''}<br><span class=o7>clique para filtrar</span>">
+    <span class="nm">${x.dot||''}${esc(x.label)}</span><span class="stk"><i style="width:${x.v/mx*100}%;background:${x.color||'#2b2f36'}"></i></span><b class="vl">${x.v}</b></div>`).join('')
+    :'<p class="muted small">Sem dados com estes filtros.</p>';
+  el.querySelectorAll('[data-k]').forEach(r=>r.onclick=()=>toggleF(dim,r.dataset.k));
+}
+function vbars(el,dim,items,unit){
+  const mx=Math.max(1,...items.map(x=>x.v)); const sel=R.f[dim];
+  el.innerHTML=`<div class="vb">${items.map(x=>`<div class="vc click ${sel.length&&!sel.includes(x.k)?'dim':''} ${sel.includes(x.k)?'sel':''}" data-k="${x.k}"
+    data-tip="<b>${esc(x.label)}</b><br>${x.v} ${unit||'registros'}<br><span class=o7>clique para filtrar</span>">
+    <span class="vv">${x.v||''}</span><span class="bw"><i style="height:${x.v/mx*100}%"></i></span><span class="vl2">${esc(x.short||x.label)}</span></div>`).join('')}</div>`;
+  el.querySelectorAll('[data-k]').forEach(r=>r.onclick=()=>toggleF(dim,r.dataset.k));
+}
+function renderRel(){
+  if(!R.month) return;
+  const [a,b]=rRange(); if(!a||!b||a>b){$('#rStatus').innerHTML='<span class="pill warn">Período inválido</span>';return}
+  const days=daysIn(a,b); const [pa,pb0]=prevRange(a,b);
+  const be=b>today()?today():b; const elapsed=be<a?0:daysIn(a,be).length;
+  const pb=elapsed&&b>today()?addDays(pa,elapsed-1):pb0; const ldays=days.filter(d=>d<=today());
+  // controles
+  document.querySelectorAll('#rMode button').forEach(x=>x.classList.toggle('on',x.dataset.m===R.mode));
+  $('#rMonthBox').classList.toggle('hidden',R.mode!=='mes'); $('#rRangeBox').classList.toggle('hidden',R.mode!=='per');
+  $('#rMonth').value=R.month; $('#rFrom').value=R.from; $('#rTo').value=R.to; $('#rCmp').checked=R.cmp;
+  $('#rTitle').textContent = R.mode==='mes'
+    ? new Date(R.month+'-15T12:00:00Z').toLocaleDateString('pt-BR',{month:'long',year:'numeric',timeZone:'UTC'}).replace(/^./,c=>c.toUpperCase())
+    : `${fmtD(a)}/${a.slice(0,4)} a ${fmtD(b)}/${b.slice(0,4)} · ${days.length} dias`;
+  $('#rPrevTxt').textContent = R.cmp?`comparado com ${fmtD(pa)} a ${fmtD(pb)}${b>today()?' (mesmo nº de dias corridos)':''}`:'';
+  const base=repEntries(a,b), prev=R.cmp?repEntries(pa,pb):[];
+  const list=base.filter(e=>rMatch(e)), plist=prev.filter(e=>rMatch(e,'date'));
+  // filtros (opções)
+  const opts={autor:[...new Set([...team().map(t=>t.name),...base.map(e=>e.autor)])],plat:[...PLATS.map(p=>p.id),'(sem rede)'],
+    tipo:[...new Set([...TIPOS,...base.map(e=>e.tipo).filter(Boolean)])],ativ:ATIVS,status:['Publicado','Agendado'],link:['Com link','Sem link']};
+  $('#rFilters').innerHTML=Object.entries(opts).map(([k,vs])=>`<div class="fg"><span class="fl">${DIMLAB[k]}</span><div class="chips">${vs.map(v=>{
+    const n=base.filter(e=>rMatch(e,k)&&DIMS[k](e).includes(v)).length;
+    return `<button type="button" class="chip sm ${R.f[k].includes(v)?'on':''} ${!n&&!R.f[k].includes(v)?'zero':''}" data-fk="${k}" data-fv="${esc(v)}">${k==='plat'&&v!=='(sem rede)'?platDot(v):''}${esc(v)} <span class="cn">${n}</span></button>`}).join('')}</div></div>`).join('');
+  $('#rFilters').querySelectorAll('[data-fk]').forEach(x=>x.onclick=()=>toggleF(x.dataset.fk,x.dataset.fv));
+  const act=Object.entries(R.f).flatMap(([k,vs])=>vs.map(v=>({k,v})));
+  $('#rActive').innerHTML = act.length||R.q ? `<span class="small muted">Filtros ativos:</span> ${act.map(x=>`<button class="chip sm on" data-ak="${x.k}" data-av="${esc(x.v)}">${DIMLAB[x.k]}: ${esc(fLabel(x.k,x.v))} ✕</button>`).join('')}
+    ${R.q?`<span class="chip sm on">busca: “${esc(R.q)}”</span>`:''}<button class="btn ghost sm" id="rClear">Limpar tudo</button>`:'<span class="small muted">Clique nos gráficos, nas barras ou nos filtros para analisar um recorte. Clique de novo para tirar.</span>';
+  $('#rActive').querySelectorAll('[data-ak]').forEach(x=>x.onclick=()=>toggleF(x.dataset.ak,x.dataset.av));
+  if($('#rClear')) $('#rClear').onclick=()=>{Object.keys(R.f).forEach(k=>R.f[k]=[]);R.q='';$('#rQ').value='';R.page=0;renderRel()};
+  $('#rFCount').textContent=act.length?`(${act.length} ativo${act.length>1?'s':''})`:'· clique para abrir';
+
+  // KPIs
+  const pDays=daysIn(pa,pb); const k=kpiSet(list,days), pk=R.cmp?kpiSet(plist,pDays):{};
+  const card=(l,v,d,sub)=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="small">${d||''} <span class="muted">${sub||''}</span></div></div>`;
+  $('#rKpis').innerHTML=
+    `<div class="kpi hero"><div class="l">Publicações nas redes</div><div class="v">${k.pub}</div><div class="small">${delta(k.pub,pk.pub)} <span class="muted">${R.cmp?'vs. período anterior':''}</span></div></div>`+
+    card('Média por dia',String(k.avg).replace('.',','),delta(k.avg,pk.avg),'publicações/dia')+
+    card('Registros',k.reg,delta(k.reg,pk.reg),'todas as atividades')+
+    card('Vídeos produzidos',k.vid,delta(k.vid,pk.vid),'')+
+    card('Posts com link',k.link==null?'—':k.link+'%',delta(k.link,pk.link,true),'')+
+    card('Agendados',k.ag,delta(k.ag,pk.ag),'');
+
+  // Evolução diária (linhas por rede)
+  const L=base.filter(e=>rMatch(e,'date')&&e.ativ==='Postagem');
+  const plSel=R.f.plat.length?PLATS.filter(p=>R.f.plat.includes(p.id)):PLATS;
+  const ser=plSel.map(p=>({p,v:ldays.map(d=>L.filter(e=>e.date===d&&(e.plats||[]).includes(p.id)).length)}));
+  const W=760,H=240,pl=30,pr=10,pt=14,pbt=28; const mx=Math.max(4,...ser.flatMap(s=>s.v)); const nice=Math.ceil(mx/4)*4;
+  const X=i=>pl+(ldays.length<2?(W-pl-pr)/2:i*(W-pl-pr)/(ldays.length-1)), Y=v=>pt+(H-pt-pbt)*(1-v/nice);
+  let s=`<svg viewBox="0 0 ${W} ${H}" class="chart">`;
+  for(let i=0;i<=4;i++){const v=nice/4*i;s+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" class="grid"/><text x="${pl-6}" y="${Y(v)+4}" class="ax" text-anchor="end">${v}</text>`}
+  ldays.forEach((d,i)=>{ if(R.f.date.includes(d)) s+=`<rect x="${X(i)-(W-pl-pr)/Math.max(1,ldays.length-1)/2}" y="${pt}" width="${(W-pl-pr)/Math.max(1,ldays.length-1)}" height="${H-pt-pbt}" fill="#c6e43c55"/>`;
+    const step=Math.ceil(ldays.length/12); if(i%step===0) s+=`<text x="${X(i)}" y="${H-9}" class="ax" text-anchor="middle">${fmtD(d)}</text>`});
+  ser.forEach(o=>{s+=`<polyline fill="none" stroke="${o.p.c}" stroke-width="2" stroke-linejoin="round" points="${o.v.map((v,i)=>X(i)+','+Y(v)).join(' ')}"/>`;
+    if(ldays.length<=45) o.v.forEach((v,i)=>{s+=`<circle cx="${X(i)}" cy="${Y(v)}" r="2.5" fill="${o.p.c}"/>`})});
+  const cw=(W-pl-pr)/Math.max(1,ldays.length-1);
+  ldays.forEach((d,i)=>{s+=`<rect class="hit" data-d="${d}" x="${X(i)-cw/2}" y="${pt}" width="${cw}" height="${H-pt-pbt}" fill="transparent" data-tip="<b>${DOWS[dow(d)]}, ${fmtD(d)}</b><br>${ser.map(o=>`<span style='color:${o.p.c}'>●</span> ${o.p.id}: ${o.v[i]}`).join('<br>')}<br><span class=o7>clique para filtrar o dia</span>"/>`});
+  $('#rLine').innerHTML=`<div class="legend">${ser.map(o=>`<span><i style="background:${o.p.c}"></i>${o.p.id} <b>${o.v.reduce((x,y)=>x+y,0)}</b></span>`).join('')}</div>`+s+'</svg>';
+  $('#rLine').querySelectorAll('[data-d]').forEach(r=>r.onclick=()=>toggleF('date',r.dataset.d));
+
+  // Calendário
+  const cnt={}; base.filter(e=>rMatch(e,'date')).forEach(e=>cnt[e.date]=(cnt[e.date]||0)+(e.ativ==='Postagem'?(e.plats||[]).length:1));
+  const cmx=Math.max(1,...Object.values(cnt)); const RAMP=['#f3f8e1','#dbeba4','#b5d35c','#7fa61b','#4d6a00'];
+  let c=`<div class="cal"><span class="ch">Seg</span><span class="ch">Ter</span><span class="ch">Qua</span><span class="ch">Qui</span><span class="ch">Sex</span><span class="ch">Sáb</span><span class="ch">Dom</span>`;
+  const off=(dow(a)+6)%7; for(let i=0;i<off;i++) c+='<span></span>';
+  days.slice(0,93).forEach(d=>{const v=cnt[d]||0;const bg=v?RAMP[Math.min(4,Math.floor(v/cmx*4.999))]:'#f1f2f3';const dark=v&&v/cmx>.6;
+    c+=`<span class="cd click ${R.f.date.length&&!R.f.date.includes(d)?'dim':''} ${R.f.date.includes(d)?'sel':''} ${holidayOf(d)?'hol':''}" data-d="${d}" style="background:${bg};color:${dark?'#fff':'var(--ink)'}"
+      data-tip="<b>${DOWS[dow(d)]}, ${fmtD(d)}</b>${holidayOf(d)?' · '+esc(holidayOf(d).name):''}<br>${v} publicações/registros<br><span class=o7>clique para filtrar</span>"><b>${+d.slice(8)}</b><small>${v||''}</small></span>`});
+  $('#rCal').innerHTML=c+`</div><div class="ramp"><span class="small muted">menos</span>${RAMP.map(x=>`<i style="background:${x}"></i>`).join('')}<span class="small muted">mais</span></div>`;
+  $('#rCal').querySelectorAll('[data-d]').forEach(r=>r.onclick=()=>toggleF('date',r.dataset.d));
+
+  // barras
+  const B=dim=>base.filter(e=>rMatch(e,dim));
+  const pb_=B('plat').filter(e=>e.ativ==='Postagem'); const totP=pb_.reduce((x,e)=>x+(e.plats||[]).length,0);
+  hbars($('#rRede'),'plat',PLATS.map(p=>({k:p.id,label:p.id,v:pb_.filter(e=>(e.plats||[]).includes(p.id)).length,color:p.c,dot:platDot(p.id)+' '})),totP,'publicações');
+  const ba=B('autor'); hbars($('#rPessoa'),'autor',[...new Set([...team().map(t=>t.name),...ba.map(e=>e.autor)])].map(n=>({k:n,label:n,v:ba.filter(e=>e.autor===n).length})).sort((x,y)=>y.v-x.v),ba.length);
+  const bt=B('tipo'); const tc={}; bt.forEach(e=>tc[e.tipo||'—']=(tc[e.tipo||'—']||0)+1);
+  hbars($('#rCat'),'tipo',Object.entries(tc).sort((x,y)=>y[1]-x[1]).slice(0,12).map(([k2,v])=>({k:k2,label:k2,v})),bt.length);
+  const bv=B('ativ'); hbars($('#rAtiv'),'ativ',ATIVS.map(x=>({k:x,label:x,v:bv.filter(e=>e.ativ===x).length})).filter(x=>x.v||R.f.ativ.includes(x.k)),bv.length);
+  const bd=B('dow'); vbars($('#rDow'),'dow',[1,2,3,4,5,6,0].map(w=>({k:String(w),label:DOWS[w],short:DOWS[w].slice(0,3),v:bd.filter(e=>dow(e.date)===w).length})));
+  const bh=B('hour'); vbars($('#rHour'),'hour',[...Array(18)].map((_,i)=>i+6).map(h=>({k:String(h),label:hh(h),short:String(h),v:bh.filter(e=>hourOf(e)===h).length})));
+  const bs=B('status'),bl=B('link');
+  hbars($('#rQual'),'status',['Publicado','Agendado'].map(x=>({k:x,label:x,v:bs.filter(e=>(e.status||'Publicado')===x).length,color:x==='Agendado'?'#2f5fd0':'#2b2f36'})),bs.length);
+  const pl2=bl.filter(e=>e.ativ==='Postagem');
+  hbars($('#rLink'),'link',['Com link','Sem link'].map(x=>({k:x,label:x,v:pl2.filter(e=>linkOf(e)===x).length,color:x==='Sem link'?'#b26a00':'#2b2f36'})),pl2.length,'postagens');
+
+  // tabela
+  const sk=R.sort.k, sd=R.sort.d;
+  const val={date:e=>e.date+' '+(e.slot||(e.regAt||'').slice(11)),autor:e=>e.autor,ativ:e=>e.ativ,plats:e=>(e.plats||[]).join(','),tipo:e=>e.tipo,pauta:e=>e.pauta.toLowerCase(),status:e=>e.status,link:e=>linkOf(e)};
+  const rows=list.slice().sort((x,y)=>{const A=val[sk](x)||'',Bv=val[sk](y)||'';return A<Bv?-sd:A>Bv?sd:0});
+  const per=50, pages=Math.max(1,Math.ceil(rows.length/per)); R.page=Math.min(R.page,pages-1);
+  const th=(key,l)=>`<th class="srt" data-s="${key}">${l}${sk===key?(sd>0?' ▲':' ▼'):''}</th>`;
+  $('#rTable').innerHTML=`<table class="simple rt"><tr>${th('date','Data / hora')}${th('autor','Funcionário')}${th('ativ','Atividade')}${th('plats','Redes')}${th('tipo','Categoria')}${th('pauta','Pauta')}${th('status','Status')}${th('link','Link')}</tr>`+
+    rows.slice(R.page*per,R.page*per+per).map(e=>{const l=safeUrl(e.link);return `<tr class="click" data-id="${e.id}">
+      <td class="nw">${fmtD(e.date)} <span class="muted">${esc(e.slot||(e.regAt||'').slice(11))}</span></td><td>${esc(e.autor)}</td><td>${esc(e.ativ)}</td>
+      <td class="nw">${(e.plats||[]).map(p=>`<span title="${p}">${platDot(p)}</span>`).join(' ')||'<span class="muted">—</span>'}</td><td>${esc(e.tipo)}</td>
+      <td class="pa">${esc(e.pauta)}</td><td><span class="pill ${e.status==='Agendado'?'info':'ok'}">${esc(e.status)}</span></td>
+      <td>${l?`<a href="${esc(l)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">abrir ↗</a>`:(e.ativ==='Postagem'?'<span class="pill warn">sem link</span>':'')}</td></tr>`}).join('')+'</table>'+
+    (rows.length?'':'<p class="muted">Nenhum registro com estes filtros.</p>');
+  $('#rTable').querySelectorAll('[data-s]').forEach(x=>x.onclick=()=>{R.sort={k:x.dataset.s,d:R.sort.k===x.dataset.s?-R.sort.d:1};renderRel()});
+  $('#rTable').querySelectorAll('[data-id]').forEach(x=>x.onclick=()=>editModal(base.find(e=>e.id===x.dataset.id)));
+  $('#rCount').textContent=`${rows.length} registro${rows.length===1?'':'s'}`;
+  $('#rPager').innerHTML=pages>1?`<button class="btn ghost sm" id="rPv" ${R.page?'':'disabled'}>◀</button><span class="small">página ${R.page+1} de ${pages}</span><button class="btn ghost sm" id="rNx" ${R.page<pages-1?'':'disabled'}>▶</button>`:'';
+  if($('#rPv')){$('#rPv').onclick=()=>{R.page--;renderRel()};$('#rNx').onclick=()=>{R.page++;renderRel()}}
+  R._rows=rows;
+  tipOn($('#v-relatorios'));
+}
+function editModal(e){
+  if(!e) return; const can=e.autor===me||isAdmin; let ep=(e.plats||[]).slice(); const dis=can?'':'disabled';
+  const slotOpts=d=>['',...slotsFor(d),...(e.slot&&!slotsFor(d).includes(e.slot)?[e.slot]:[])].map(x=>`<option value="${x}" ${x===(e.slot||'')?'selected':''}>${x||'Sem horário'}</option>`).join('');
+  openModal(`<div class="row"><h3>${can?'Editar registro':'Detalhes do registro'}</h3><span class="sp"></span>${avatar(e.autor)}<b>${esc(e.autor)}</b></div>
+    <p class="small muted" style="margin:4px 0 12px">Registrado em ${esc(e.regAt||'—')}${e.editBy?` · editado por ${esc(e.editBy)}`:''}${can?'':' · só o autor ou o gestor pode editar'}</p>
+    <div class="tm-card">
+      <div class="row"><label class="f" style="flex:1">Data<input type="date" id="eD" value="${e.date}" ${dis}></label><label class="f" style="flex:1">Horário da grade<select id="eS" ${dis}>${slotOpts(e.date)}</select></label></div>
+      <div class="row"><label class="f" style="flex:1">Atividade<select id="eA" ${dis}>${ATIVS.map(x=>`<option ${x===e.ativ?'selected':''}>${x}</option>`).join('')}</select></label>
+        <label class="f" style="flex:1">Categoria<select id="eT" ${dis}>${[...new Set([...TIPOS,e.tipo])].map(x=>`<option ${x===e.tipo?'selected':''}>${esc(x)}</option>`).join('')}</select></label>
+        <label class="f" style="flex:1">Status<select id="eSt" ${dis}><option ${e.status!=='Agendado'?'selected':''}>Publicado</option><option ${e.status==='Agendado'?'selected':''}>Agendado</option></select></label></div>
+      <label class="f">Redes<div class="chips" id="eP"></div></label>
+      <label class="f">Pauta<input type="text" id="ePa" maxlength="200" value="${esc(e.pauta)}" ${dis}></label>
+      <label class="f">Link<input type="url" id="eL" value="${esc(e.link||'')}" placeholder="https://" ${dis}></label>
+      <label class="f">Observações<textarea id="eO" maxlength="500" ${dis}>${esc(e.obs||'')}</textarea></label>
+    </div>
+    <div class="row" style="margin-top:12px">${can?'<button class="btn ghost" id="eDel">Excluir</button>':''}<span class="sp"></span><button class="btn ghost" id="eNo">Fechar</button>${can?'<button class="btn red" id="eOk">Salvar</button>':''}</div>`);
+  const drawP=()=>{buildChips($('#eP'),PLATS,ep,true,v=>{if(!can)return;ep=ep.includes(v)?ep.filter(x=>x!==v):[...ep,v];drawP()})}; drawP();
+  $('#eD').onchange=()=>{$('#eS').innerHTML=slotOpts($('#eD').value)};
+  $('#eNo').onclick=closeModal;
+  if(!can) return;
+  $('#eDel').onclick=async()=>{ if($('#eDel').dataset.c!=='1'){$('#eDel').dataset.c='1';$('#eDel').textContent='Confirmar exclusão';$('#eDel').style.color='var(--bad)';return}
+    try{await run('deleteEntry',me,token,e.id);toast('Registro excluído');closeModal();delete repCache[e.date.slice(0,7)];loadRel();refresh(true)}catch(x){toast('Erro: '+errMsg(x))} };
+  $('#eOk').onclick=async()=>{
+    const body={id:e.id,date:$('#eD').value,slot:$('#eS').value,ativ:$('#eA').value,plats:ep,tipo:$('#eT').value,status:$('#eSt').value,pauta:$('#ePa').value.trim(),link:$('#eL').value.trim(),obs:$('#eO').value.trim()};
+    if(!body.pauta){toast('Escreva a pauta');return} if(body.link&&!safeUrl(body.link)){toast('Link inválido');return}
+    if(body.ativ==='Postagem'&&!ep.length){toast('Marque ao menos uma rede');return}
+    if(body.ativ==='Postagem'&&ep.some(p=>pc(p).mode==='grade')&&!body.slot){toast('Escolha o horário da grade');return}
+    $('#eOk').disabled=true;
+    try{await run('saveEntry',me,token,body);toast('Registro atualizado');closeModal();delete repCache[e.date.slice(0,7)];delete repCache[body.date.slice(0,7)];loadRel();refresh(true)}
+    catch(x){toast('Erro: '+errMsg(x));$('#eOk').disabled=false}
+  };
+}
+// controles da aba
+document.querySelectorAll('#rMode button').forEach(x=>x.onclick=()=>{R.mode=x.dataset.m;R.page=0;loadRel()});
+$('#rMonth').onchange=()=>{if($('#rMonth').value){R.month=$('#rMonth').value;R.f.date=[];loadRel()}};
+$('#rMPrev').onclick=()=>{R.month=addDays(R.month+'-01',-1).slice(0,7);R.f.date=[];loadRel()};
+$('#rMNext').onclick=()=>{R.month=addDays(lastDay(R.month),1).slice(0,7);R.f.date=[];loadRel()};
+$('#rFrom').onchange=()=>{R.from=$('#rFrom').value;R.f.date=[];loadRel()};
+$('#rTo').onchange=()=>{R.to=$('#rTo').value;R.f.date=[];loadRel()};
+document.querySelectorAll('#rPresets button').forEach(x=>x.onclick=()=>{const t=today();const p=x.dataset.p;R.mode='per';R.f.date=[];
+  if(p==='7'||p==='30'||p==='90'){R.to=t;R.from=addDays(t,-(+p)+1)}
+  if(p==='mes'){R.from=t.slice(0,7)+'-01';R.to=t}
+  if(p==='ant'){const pm=addDays(t.slice(0,7)+'-01',-1).slice(0,7);R.from=pm+'-01';R.to=lastDay(pm)}
+  if(p==='ano'){R.from=t.slice(0,4)+'-01-01';R.to=t}
+  loadRel()});
+$('#rCmp').onchange=()=>{R.cmp=$('#rCmp').checked;loadRel()};
+$('#rQ').oninput=()=>{R.q=$('#rQ').value.trim().toLowerCase();R.page=0;clearTimeout(R._qt);R._qt=setTimeout(renderRel,200)};
+$('#rReload').onclick=()=>{Object.keys(repCache).forEach(k=>delete repCache[k]);loadRel()};
+$('#rCsv').onclick=async()=>{
+  const cols=['Data','Dia','Horário','Funcionário','Atividade','Redes','Categoria','Pauta','Link','Status','Observações','Registrado em'];
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const csv='﻿'+[cols.map(q).join(';'),...(R._rows||[]).map(e=>[e.date.split('-').reverse().join('/'),DOWS[dow(e.date)],e.slot,e.autor,e.ativ,(e.plats||[]).join(' + '),e.tipo,e.pauta,e.link,e.status,e.obs,e.regAt].map(q).join(';'))].join('\n');
+  try{const u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=u;a.download=`relatorio-cng-${rRange().join('_a_')}.csv`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);toast('Planilha baixada (abre no Excel/Sheets)')}
+  catch(x){try{await navigator.clipboard.writeText(csv);toast('CSV copiado')}catch(y){toast('Não foi possível exportar')}}
+};
 
 /* ======================= boot ======================= */
 gDate=today(); eDate=today();
