@@ -418,16 +418,10 @@ table.simple th{color:var(--mute);font-size:12px;text-transform:uppercase}
     <div class="grid2">
       <div class="card">
         <h3>Grade de horários</h3>
-        <p class="small muted">Vale para as redes em "grade". Dia útil: a cada 1 hora. Fim de semana e feriado: a cada 2 horas.</p>
+        <p class="small muted">Vale para as redes em "grade". A grade cobre <b>00h às 23h todos os dias</b>.</p>
         <div class="row" style="margin-top:10px">
-          <label class="f" style="flex:1">Dia útil: início<input type="time" id="sWdS" step="3600"></label>
-          <label class="f" style="flex:1">último post<input type="time" id="sWdE" step="3600"></label>
-          <label class="f" style="width:90px">a cada (h)<input type="number" id="sWdStep" min="1" max="4"></label>
-        </div>
-        <div class="row" style="margin-top:10px">
-          <label class="f" style="flex:1">Fim de semana/feriado: início<input type="time" id="sWeS" step="3600"></label>
-          <label class="f" style="flex:1">último post<input type="time" id="sWeE" step="3600"></label>
-          <label class="f" style="width:90px">a cada (h)<input type="number" id="sWeStep" min="1" max="4"></label>
+          <label class="f" style="flex:1">Dia útil: um post a cada (horas)<input type="number" id="sWdStep" min="1" max="4"></label>
+          <label class="f" style="flex:1">Fim de semana/feriado: um post a cada (horas)<input type="number" id="sWeStep" min="1" max="4"></label>
         </div>
         <div class="sec">
           <h3>Regras por rede</h3>
@@ -473,8 +467,8 @@ const catOf=t=>String(t||'').startsWith(QF)?QF:(t||'—');
 const quadroOf=t=>String(t||'').startsWith(QF+QSEP)?String(t).slice((QF+QSEP).length):null;
 const COLORS = ['#2b2f36','#4d6a00','#2f5fd0','#8a5a00','#7b3fc4','#0e7c86','#a3366a','#4a525e'];
 const DEFAULT_CFG = {
-  weekday:{start:7,end:22,step:1},
-  weekend:{start:8,end:22,step:2},
+  weekday:{start:0,end:23,step:1},
+  weekend:{start:0,end:22,step:2},
   platCfg:{Instagram:{mode:'grade'},TikTok:{mode:'meta',wd:8,we:8},YouTube:{mode:'meta',wd:4,we:4},Site:{mode:'meta',wd:5,we:3}},
   holidays:[],
   team:[]
@@ -512,8 +506,8 @@ function holidayOf(d){return (cfg.holidays||[]).find(x=>x.date===d)}
 function isReduced(d){const w=dow(d);return w===0||w===6||!!holidayOf(d)}
 function slotsFor(d){
   const g = isReduced(d)?cfg.weekend:cfg.weekday;
-  const out=[]; const step=Math.max(1,+g.step||1);
-  for(let h=+g.start; h<=+g.end; h+=step) out.push(hh(h));
+  const out=[]; const step=Math.max(1,+g.step||(isReduced(d)?2:1));
+  for(let h=0; h<=23; h+=step) out.push(hh(h));   // grade cobre 00h–23h todos os dias
   return out;
 }
 function currentSlot(d){
@@ -691,11 +685,10 @@ function readTipo(sel,inp,qs){const v=readOther(sel,inp);if(v!==QF)return v;retu
 function statusOptions(){return STATUS_OPTS.map(t=>`<option>${t}</option>`).join('')+optOutro('Outro (digitar)')}
 function statusCls(st){return st==='Agendado'?'info':st==='Publicado'||!st?'ok':''}
 /* horários da madrugada (fora da grade, não contam atraso) */
-const NIGHT=[23,0,1,2,3,4,5,6];
-function offSlots(d){const g=slotsFor(d);return NIGHT.map(hh).filter(x=>!g.includes(x))}
+function offSlots(d){const g=slotsFor(d);return [...Array(24)].map((_,i)=>hh(i)).filter(x=>!g.includes(x))}
 function slotSelectHtml(d,emptyLabel){
   return `<option value="">${emptyLabel}</option><optgroup label="Grade do dia">${slotsFor(d).map(x=>`<option value="${x}">${x}</option>`).join('')}</optgroup>`+
-    `<optgroup label="Madrugada · fora da grade">${offSlots(d).map(x=>`<option value="${x}">${x}</option>`).join('')}</optgroup>`+optOutro('Outro horário (digitar)');
+    (offSlots(d).length?`<optgroup label="Fora da grade">${offSlots(d).map(x=>`<option value="${x}">${x}</option>`).join('')}</optgroup>`:'')+optOutro('Outro horário (digitar)');
 }
 function fillSlots(keep){
   const d=$('#fDate').value||today();
@@ -845,7 +838,7 @@ function postsOn(d,p){return entriesOn(d).filter(e=>e.ativ==='Postagem'&&(e.plat
 function expectedSoFar(p,d){
   const q=quota(p,d); const n=nowParts();
   if(d<n.date) return q; if(d>n.date) return 0;
-  const g=isReduced(d)?cfg.weekend:cfg.weekday; const st=+g.start*60, en=(+g.end+1)*60, now=n.h*60+n.m;
+  const st=0, en=24*60, now=n.h*60+n.m;   // ritmo das metas ao longo das 24h
   if(now<=st) return 0; if(now>=en) return q;
   return Math.floor(q*(now-st)/(en-st));
 }
@@ -905,14 +898,14 @@ function renderGrade(){
   const nightRow=slot=>{const cov=slotCoverage(d,slot);const all=PLATS.map(p=>p.id).flatMap(p=>cov[p].map(e=>({p,e})));if(!all.length)return '';
     return `<tr class="extra"><td class="h">${slot}<div class="small muted">fora da grade</div></td>${gp.map(p=>`<td>${cov[p].length?cellHtml(d,slot,p,cov[p]):'<span class="muted">—</span>'}</td>`).join('')}
       <td>${all.filter(o=>!gp.includes(o.p)).length?`<div class="chips">${all.filter(o=>!gp.includes(o.p)).map(o=>`<span class="pill" title="${esc(o.e.pauta)}">${platDot(o.p)} ${o.p} · ${esc(o.e.autor)}</span>`).join('')}</div>`:'<span class="muted">—</span>'}</td></tr>`};
-  offSlots(d).filter(x=>x!=='23:00').forEach(x=>h+=nightRow(x));
-  slotsFor(d).forEach(slot=>{
+  const gs=slotsFor(d);
+  [...Array(24)].map((_,i)=>hh(i)).forEach(slot=>{
+    if(!gs.includes(slot)){h+=nightRow(slot);return}
     const cov=slotCoverage(d,slot);
     const others=mp.flatMap(p=>cov[p].map(e=>({p,e})));
     h+=`<tr class="${slot===cur?'now':''}"><td class="h">${slot}${slot===cur?'<div class="small" style="color:var(--warn)">agora</div>':''}</td>${gp.map(p=>`<td>${cellHtml(d,slot,p,cov[p])}</td>`).join('')}
       <td>${others.length?`<div class="chips">${others.map(o=>`<span class="pill" title="${esc(o.e.pauta)}">${platDot(o.p)} ${o.p} · ${esc(o.e.autor)}</span>`).join('')}</div>`:'<span class="muted">—</span>'}</td></tr>`;
   });
-  if(offSlots(d).includes('23:00')) h+=nightRow('23:00');
   const off=es.filter(e=>e.ativ==='Postagem'&&(!e.slot||(!slotsFor(d).includes(e.slot)&&!offSlots(d).includes(e.slot))));
   if(off.length) h+=`<tr><td class="h">Sem horário</td><td colspan="${gp.length+1}"><div class="chips">${off.map(e=>`<span class="pill" title="${esc(e.pauta)}">${(e.plats||[]).map(platDot).join('')} ${esc(e.slot||'')} ${esc(e.autor)}: ${esc(e.pauta.slice(0,40))}</span>`).join('')}</div></td></tr>`;
   h+='</tbody>';
@@ -1031,8 +1024,7 @@ let draft=null;
 const toT=h=>hh(h), fromT=t=>+(t||'0').slice(0,2);
 function renderSettings(){
   draft=JSON.parse(JSON.stringify(cfg));
-  $('#sWdS').value=toT(draft.weekday.start); $('#sWdE').value=toT(draft.weekday.end); $('#sWdStep').value=draft.weekday.step;
-  $('#sWeS').value=toT(draft.weekend.start); $('#sWeE').value=toT(draft.weekend.end); $('#sWeStep').value=draft.weekend.step;
+  $('#sWdStep').value=draft.weekday.step||1; $('#sWeStep').value=draft.weekend.step||2;
   renderSettingsLists();
 }
 function renderSettingsLists(){
@@ -1070,8 +1062,8 @@ $('#sHolAdd').onclick=()=>{const d=$('#sHolDate').value,n=$('#sHolName').value.t
   draft.holidays=(draft.holidays||[]).filter(x=>x.date!==d).concat({date:d,name:n});$('#sHolDate').value='';$('#sHolName').value='';renderSettingsLists()};
 $('#sAdd').onclick=()=>{const n=$('#sNewName').value.trim();if(!n||draft.team.some(t=>t.name===n))return;draft.team.push({name:n,role:'',plats:[],metaVideos:0,metaPosts:0});$('#sNewName').value='';renderSettingsLists()};
 $('#sSave').onclick=async()=>{
-  draft.weekday={start:fromT($('#sWdS').value),end:fromT($('#sWdE').value),step:Math.max(1,+$('#sWdStep').value||1)};
-  draft.weekend={start:fromT($('#sWeS').value),end:fromT($('#sWeE').value),step:Math.max(1,+$('#sWeStep').value||2)};
+  draft.weekday={start:0,end:23,step:Math.max(1,+$('#sWdStep').value||1)};
+  draft.weekend={start:0,end:22,step:Math.max(1,+$('#sWeStep').value||2)};
   try{await run('saveConfig',me,token,draft);toast('Ajustes salvos');refresh()}catch(e){toast('Erro ao salvar ajustes: '+errMsg(e))}
 };
 

@@ -15,8 +15,8 @@ const ATIVS = ['Postagem','Vídeo (matéria)','Captação de vídeo','Edição d
 const PLATS = ['Instagram','TikTok','YouTube','Site'];
 
 const DEFAULT_CFG = {
-  weekday: {start: 7, end: 22, step: 1},
-  weekend: {start: 8, end: 22, step: 2},
+  weekday: {start: 0, end: 23, step: 1},
+  weekend: {start: 0, end: 22, step: 2},
   platCfg: {
     Instagram: {mode: 'grade'},
     TikTok: {mode: 'meta', wd: 8, we: 8},
@@ -299,7 +299,8 @@ function deleteEntry(name, token, id) {
 function saveConfig(name, token, c) {
   const a = must_(name, token);
   if (!a.admin) throw new Error('Só o gestor altera os ajustes.');
-  const g = function (x, d) { return {start: Math.max(0, Math.min(23, +x.start || d.start)), end: Math.max(0, Math.min(23, +x.end || d.end)), step: Math.max(1, Math.min(6, +x.step || d.step))}; };
+  const num = function (v, d) { return (v === '' || v == null || isNaN(+v)) ? d : +v; };
+  const g = function (x, d) { return {start: Math.max(0, Math.min(23, num(x.start, d.start))), end: Math.max(0, Math.min(23, num(x.end, d.end))), step: Math.max(1, Math.min(6, num(x.step, d.step)))}; };
   const out = {
     weekday: g(c.weekday || {}, DEFAULT_CFG.weekday),
     weekend: g(c.weekend || {}, DEFAULT_CFG.weekend),
