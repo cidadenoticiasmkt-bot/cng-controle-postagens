@@ -19,6 +19,10 @@ h1,h2,h3{font-family:Archivo,Inter,sans-serif;margin:0;letter-spacing:-.01em}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 .hidden{display:none!important}
+.dup{background:#fff6e5;border:1px solid #f1c97a;border-left:4px solid var(--warn);border-radius:9px;padding:10px 12px;font-size:13px;color:#5c3b00}
+.dup b.h{display:block;margin-bottom:4px}
+.dup .it{padding:6px 0;border-top:1px dashed #f1c97a} .dup .it:first-of-type{border-top:0}
+.dup .sc{font-weight:700;color:var(--warn)}
 .ox{margin-top:6px;border-color:var(--lime2)!important;background:#fbfdf3!important}
 
 /* top bar */
@@ -333,6 +337,7 @@ table.simple th{color:var(--mute);font-size:12px;text-transform:uppercase}
             <label class="f" style="flex:1">Status<select id="fStatus"></select><input type="text" id="fStatusX" class="hidden ox" maxlength="30" placeholder="Ex.: Em produção, Aguardando aprovação"></label>
           </div>
           <label class="f">Tema / pauta<input type="text" id="fPauta" maxlength="200" placeholder="Ex.: Acidente na BR-060 em Rio Verde" required></label>
+          <div id="fDup" class="dup hidden"></div>
           <label class="f">Link do post (opcional)<input type="url" id="fLink" placeholder="https://"></label>
           <label class="f">Observações (opcional)<textarea id="fObs" maxlength="500"></textarea></label>
           <div class="row">
@@ -693,6 +698,7 @@ function resetForm(){
   $('#fTipo').innerHTML = tipoOptions(); setWithOther($('#fTipo'),$('#fTipoX'),'Notícia Geral');
   $('#fStatus').innerHTML = statusOptions(); setWithOther($('#fStatus'),$('#fStatusX'),'Publicado');
   ['#fPauta','#fLink','#fObs'].forEach(s=>$(s).value='');
+  dupAck=false; $('#fDup').classList.add('hidden');
   renderFormChips(); fillSlots();
 }
 function startEdit(e){
@@ -706,6 +712,36 @@ function startEdit(e){
   $('#fPauta').value=e.pauta||''; $('#fLink').value=e.link||''; $('#fObs').value=e.obs||'';
   window.scrollTo({top:0,behavior:'smooth'});
 }
+/* ---- aviso de pauta parecida ---- */
+const STOP=new Set('a o os as um uma uns umas de da do das dos em no na nos nas por pelo pela pelos pelas para pra com sem e ou que se sua seu suas seus ao aos à às é foi são ser apos após sobre entre contra mais menos muito já ja nao não diz dizem vai vão the'.split(' '));
+function normTxt(t){return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]+/g,' ')}
+function tokens(t){return [...new Set(normTxt(t).split(/\s+/).filter(w=>w.length>=2&&!STOP.has(w)).map(w=>w.length>6?w.slice(0,6):w))]}
+function simScore(a,b){
+  const A=tokens(a),B=tokens(b); if(!A.length||!B.length) return {s:0,c:0};
+  const c=A.filter(x=>B.some(y=>y===x||(x.length>=4&&y.length>=4&&(y.startsWith(x)||x.startsWith(y))))).length;
+  return {s:c/Math.min(A.length,B.length), c};
+}
+function findSimilar(text){
+  if(tokens(text).length<2) return [];
+  const d0=$('#fDate').value||today(), lo=addDays(d0,-7), hi=addDays(d0,7);
+  return allEntries().filter(e=>e.id!==editingId&&e.date>=lo&&e.date<=hi&&e.pauta)
+    .map(e=>({e,...simScore(text,e.pauta)}))
+    .filter(x=>x.c>=2&&x.s>=0.6)
+    .sort((a,b)=>b.s-a.s||b.e.date.localeCompare(a.e.date)).slice(0,3);
+}
+let dupAck=false;
+function checkDup(){
+  const list=findSimilar($('#fPauta').value); const box=$('#fDup');
+  dupAck=false; $('#fSave').textContent=editingId?'Salvar alterações':'Salvar registro';
+  if(!list.length){box.classList.add('hidden');box.innerHTML='';return list}
+  box.innerHTML=`<b class="h">⚠ Este conteúdo talvez já esteja ${list.some(x=>x.e.status==='Agendado')?'agendado ou ':''}postado:</b>`+list.map(x=>{const e=x.e;const l=safeUrl(e.link);
+    return `<div class="it"><span class="sc">${Math.round(x.s*100)}% parecido</span> · “${esc(e.pauta)}”<br>
+    <span class="small">${fmtD(e.date)}${e.slot?' às '+esc(e.slot):''} · ${esc(e.autor)} · ${esc(e.status||'Publicado')}${(e.plats||[]).length?' · '+e.plats.map(esc).join(', '):''}${l?` · <a href="${esc(l)}" target="_blank" rel="noopener">abrir ↗</a>`:''}</span></div>`}).join('')+
+    `<div class="small" style="margin-top:6px">Confira antes de salvar. Se for outro conteúdo ou outra rede, pode seguir.</div>`;
+  box.classList.remove('hidden'); return list;
+}
+let dupT=null;
+$('#fPauta').addEventListener('input',()=>{clearTimeout(dupT);dupT=setTimeout(checkDup,350)});
 $('#fCancel').onclick=resetForm;
 $('#fDate').onchange=()=>{fillSlots();subscribeMonth($('#fDate').value.slice(0,7))};
 $('#form').onsubmit=async ev=>{
@@ -728,6 +764,8 @@ $('#form').onsubmit=async ev=>{
     pauta, link, obs:$('#fObs').value.trim(), autor:me,
     regAt:`${n.date} ${String(n.h).padStart(2,'0')}:${String(n.m).padStart(2,'0')}`
   };
+  if(!dupAck && checkDup().length){ dupAck=true; $('#fSave').textContent='Salvar mesmo assim';
+    $('#fDup').scrollIntoView({behavior:'smooth',block:'center'}); toast('Conteúdo parecido encontrado. Confira o aviso.'); return }
   $('#fSave').disabled=true;
   try{
     if(editingId) body.id=editingId;
