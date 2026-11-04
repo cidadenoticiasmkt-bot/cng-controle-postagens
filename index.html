@@ -19,6 +19,7 @@ h1,h2,h3{font-family:Archivo,Inter,sans-serif;margin:0;letter-spacing:-.01em}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 .hidden{display:none!important}
+.ox{margin-top:6px;border-color:var(--lime2)!important;background:#fbfdf3!important}
 
 /* top bar */
 header{background:var(--ink);color:#fff;position:sticky;top:0;z-index:20}
@@ -319,7 +320,7 @@ table.simple th{color:var(--mute);font-size:12px;text-transform:uppercase}
         <form id="form" class="tm-card">
           <div class="row">
             <label class="f" style="flex:1">Data<input type="date" id="fDate" required></label>
-            <label class="f" style="flex:1">Horário da grade <span class="muted" style="font-weight:500">(obrigatório p/ Instagram)</span><select id="fSlot"></select></label>
+            <label class="f" style="flex:1">Horário da grade <span class="muted" style="font-weight:500">(obrigatório p/ Instagram)</span><select id="fSlot"></select><input type="time" id="fSlotX" class="hidden ox" title="Digite o horário"></label>
           </div>
           <label class="f">Atividade
             <div class="chips" id="fAtiv"></div>
@@ -328,8 +329,8 @@ table.simple th{color:var(--mute);font-size:12px;text-transform:uppercase}
             <div class="chips" id="fPlat"></div>
           </label>
           <div class="row">
-            <label class="f" style="flex:1">Tipo / categoria<select id="fTipo"></select></label>
-            <label class="f" style="flex:1">Status<select id="fStatus"><option>Publicado</option><option>Agendado</option></select></label>
+            <label class="f" style="flex:1">Tipo / categoria<select id="fTipo"></select><input type="text" id="fTipoX" class="hidden ox" maxlength="40" placeholder="Digite a categoria"></label>
+            <label class="f" style="flex:1">Status<select id="fStatus"></select><input type="text" id="fStatusX" class="hidden ox" maxlength="30" placeholder="Ex.: Em produção, Aguardando aprovação"></label>
           </div>
           <label class="f">Tema / pauta<input type="text" id="fPauta" maxlength="200" placeholder="Ex.: Acidente na BR-060 em Rio Verde" required></label>
           <label class="f">Link do post (opcional)<input type="url" id="fLink" placeholder="https://"></label>
@@ -659,12 +660,28 @@ function renderFormChips(){
   buildChips($('#fAtiv'),ATIVS,fAtiv,false,v=>{fAtiv=v;renderFormChips();fillSlots()});
   buildChips($('#fPlat'),PLATS,fPlats,true,v=>{fPlats=fPlats.includes(v)?fPlats.filter(x=>x!==v):[...fPlats,v];renderFormChips()});
 }
+/* ---- opção "Outro" com preenchimento manual ---- */
+const OUTRO='__outro__';
+const STATUS_OPTS=['Publicado','Agendado'];
+function optOutro(label){return `<option value="${OUTRO}">${label}</option>`}
+function wireOther(sel,inp){sel.addEventListener('change',()=>{inp.classList.toggle('hidden',sel.value!==OUTRO);if(sel.value===OUTRO)inp.focus()})}
+function setWithOther(sel,inp,val){
+  val=val==null?'':String(val);
+  if(val&&![...sel.options].some(o=>o.value===val)){sel.value=OUTRO;inp.value=val;inp.classList.remove('hidden')}
+  else{sel.value=val;inp.value='';inp.classList.toggle('hidden',sel.value!==OUTRO)}
+}
+function readOther(sel,inp){return sel.value===OUTRO?inp.value.trim():sel.value}
+function tipoOptions(){return TIPOS.filter(t=>t!=='Outro').map(t=>`<option>${t}</option>`).join('')+optOutro('Outro (digitar)')}
+function statusOptions(){return STATUS_OPTS.map(t=>`<option>${t}</option>`).join('')+optOutro('Outro (digitar)')}
+function statusCls(st){return st==='Agendado'?'info':st==='Publicado'||!st?'ok':''}
 function fillSlots(keep){
   const d=$('#fDate').value||today();
   const s=slotsFor(d); const cur=keep!=null?keep:(fAtiv==='Postagem'?(currentSlot(d)||''):'');
-  const opts=['',...s]; if(keep&&!opts.includes(keep)) opts.push(keep);
-  $('#fSlot').innerHTML = opts.map(x=>`<option value="${x}" ${x===cur?'selected':''}>${x||'Sem horário (meta do dia / produção)'}</option>`).join('');
+  const opts=['',...s];
+  $('#fSlot').innerHTML = opts.map(x=>`<option value="${x}">${x||'Sem horário (meta do dia / produção)'}</option>`).join('')+optOutro('Outro horário (digitar)');
+  setWithOther($('#fSlot'),$('#fSlotX'),cur);
 }
+wireOther($('#fSlot'),$('#fSlotX')); wireOther($('#fTipo'),$('#fTipoX')); wireOther($('#fStatus'),$('#fStatusX'));
 function resetForm(){
   editingId=null;
   $('#formTitle').textContent='Registrar o que foi feito';
@@ -673,8 +690,8 @@ function resetForm(){
   const m=member(me);
   fAtiv = (me==='Vitor')?'Vídeo (matéria)':(me==='Bruno')?'Trabalho extra':'Postagem';
   fPlats = (m&&m.plats&&m.plats.length<=2)?m.plats.slice():[];
-  $('#fTipo').innerHTML = TIPOS.map(t=>`<option>${t}</option>`).join('');
-  $('#fStatus').value='Publicado';
+  $('#fTipo').innerHTML = tipoOptions(); setWithOther($('#fTipo'),$('#fTipoX'),'Notícia Geral');
+  $('#fStatus').innerHTML = statusOptions(); setWithOther($('#fStatus'),$('#fStatusX'),'Publicado');
   ['#fPauta','#fLink','#fObs'].forEach(s=>$(s).value='');
   renderFormChips(); fillSlots();
 }
@@ -684,8 +701,8 @@ function startEdit(e){
   $('#fSave').textContent='Salvar alterações'; $('#fCancel').classList.remove('hidden');
   $('#fDate').value=e.date; fAtiv=e.ativ||'Postagem'; fPlats=(e.plats||[]).slice();
   renderFormChips(); fillSlots(e.slot||'');
-  $('#fSlot').value=e.slot||'';
-  $('#fTipo').value=e.tipo||'Notícia Geral'; $('#fStatus').value=e.status||'Publicado';
+  $('#fTipo').innerHTML = tipoOptions(); setWithOther($('#fTipo'),$('#fTipoX'),e.tipo||'Notícia Geral');
+  $('#fStatus').innerHTML = statusOptions(); setWithOther($('#fStatus'),$('#fStatusX'),e.status||'Publicado');
   $('#fPauta').value=e.pauta||''; $('#fLink').value=e.link||''; $('#fObs').value=e.obs||'';
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -693,8 +710,12 @@ $('#fCancel').onclick=resetForm;
 $('#fDate').onchange=()=>{fillSlots();subscribeMonth($('#fDate').value.slice(0,7))};
 $('#form').onsubmit=async ev=>{
   ev.preventDefault();
-  const date=$('#fDate').value, slot=$('#fSlot').value;
+  const date=$('#fDate').value, slot=readOther($('#fSlot'),$('#fSlotX'));
   if(!date){toast('Escolha a data');return}
+  if($('#fSlot').value===OUTRO&&!/^\d{2}:\d{2}$/.test(slot)){toast('Digite o horário (ex.: 14:35)');return}
+  const tipoV=readOther($('#fTipo'),$('#fTipoX')), statusV=readOther($('#fStatus'),$('#fStatusX'));
+  if(!tipoV){toast('Digite a categoria');return}
+  if(!statusV){toast('Digite o status');return}
   if(fAtiv==='Postagem'&&!fPlats.length){toast('Marque onde foi postado');return}
   const needSlot=fPlats.filter(p=>pc(p).mode==='grade');
   if(fAtiv==='Postagem'&&needSlot.length&&!slot){toast('Escolha o horário da grade ('+needSlot.join(', ')+')');return}
@@ -703,7 +724,7 @@ $('#form').onsubmit=async ev=>{
   if(link&&!safeUrl(link)){toast('Link inválido');return}
   const n=nowParts();
   const body={
-    date, slot, ativ:fAtiv, plats:fPlats.slice(), tipo:$('#fTipo').value, status:$('#fStatus').value,
+    date, slot, ativ:fAtiv, plats:fPlats.slice(), tipo:tipoV, status:statusV,
     pauta, link, obs:$('#fObs').value.trim(), autor:me,
     regAt:`${n.date} ${String(n.h).padStart(2,'0')}:${String(n.m).padStart(2,'0')}`
   };
@@ -741,7 +762,7 @@ function entryRow(e,opts={}){
       <div class="small muted row" style="gap:6px;margin-top:3px">
         <span>${esc(e.autor)}</span>·<span>${esc(e.ativ)}</span>·<span>${esc(e.tipo)}</span>
         ${(e.plats||[]).map(p=>`<span class="pill">${platDot(p)} ${esc(p)}</span>`).join('')}
-        <span class="pill ${e.status==='Agendado'?'info':'ok'}">${esc(e.status)}</span>
+        <span class="pill ${statusCls(e.status)}">${esc(e.status)}</span>
         ${e.ativ==='Postagem'&&!safeUrl(e.link)?'<span class="pill warn" title="Sem link não dá para conferir o post">sem link</span>':''}
         ${link?`<a href="${esc(link)}" target="_blank" rel="noopener">abrir link ↗</a>`:''}
       </div>
@@ -787,7 +808,7 @@ function slotCoverage(d,slot){
 function postLine(h){const l=safeUrl(h.link);return `<span class="t" title="${esc(h.pauta)}">${l?`<a href="${esc(l)}" target="_blank" rel="noopener">`:''}${esc(h.autor)}: ${esc(h.pauta)}${l?'</a>':''}</span>`}
 function cellHtml(d,slot,p,hits){
   if(hits.length){
-    const pub=hits.some(h=>h.status!=='Agendado');
+    const pub=hits.some(h=>(h.status||'Publicado')==='Publicado');
     return `<div class="cell ${pub?'done':'sched'}">${hits.map(postLine).join('')}</div>`;
   }
   const passed=slotPassed(d,slot);
@@ -839,7 +860,7 @@ function renderGrade(){
   // listas das metas
   $('#gMetas').innerHTML = metaPlats().map(p=>{const m=metaInfo(p,d);
     return `<div class="card"><div class="row"><h3>${platDot(p)} ${p}</h3><span class="sp"></span><b>${m.n} / ${m.q}</b></div>${meterBar(m.n,m.q,m.cls)}
-      <div style="margin-top:8px">${m.posts.length?m.posts.sort(bySlot).map(e=>{const l=safeUrl(e.link);return `<div class="small" style="padding:4px 0;border-bottom:1px solid var(--line)"><b>${esc(e.slot||e.regAt.slice(11))}</b> · ${esc(e.autor)} · ${l?`<a href="${esc(l)}" target="_blank" rel="noopener">${esc(e.pauta)}</a>`:esc(e.pauta)}${e.status==='Agendado'?' <span class="pill info">agendado</span>':''}</div>`}).join(''):'<p class="small muted">Nenhum post ainda.</p>'}</div></div>`}).join('');
+      <div style="margin-top:8px">${m.posts.length?m.posts.sort(bySlot).map(e=>{const l=safeUrl(e.link);return `<div class="small" style="padding:4px 0;border-bottom:1px solid var(--line)"><b>${esc(e.slot||e.regAt.slice(11))}</b> · ${esc(e.autor)} · ${l?`<a href="${esc(l)}" target="_blank" rel="noopener">${esc(e.pauta)}</a>`:esc(e.pauta)}${e.status&&e.status!=='Publicado'?` <span class="pill ${statusCls(e.status)}">${esc(e.status.toLowerCase())}</span>`:''}</div>`}).join(''):'<p class="small muted">Nenhum post ainda.</p>'}</div></div>`}).join('');
 }
 function renderRegistrar(){
   const d=today(); const cur=currentSlot(d); const gp=gradePlats();
@@ -1209,7 +1230,7 @@ function renderRel(){
   const list=base.filter(e=>rMatch(e)), plist=prev.filter(e=>rMatch(e,'date'));
   // filtros (opções)
   const opts={autor:[...new Set([...team().map(t=>t.name),...base.map(e=>e.autor)])],plat:[...PLATS.map(p=>p.id),'(sem rede)'],
-    tipo:[...new Set([...TIPOS,...base.map(e=>e.tipo).filter(Boolean)])],ativ:ATIVS,status:['Publicado','Agendado'],link:['Com link','Sem link']};
+    tipo:[...new Set([...TIPOS,...base.map(e=>e.tipo).filter(Boolean)])],ativ:ATIVS,status:[...new Set(['Publicado','Agendado',...base.map(e=>e.status).filter(Boolean)])],link:['Com link','Sem link']};
   $('#rFilters').innerHTML=Object.entries(opts).map(([k,vs])=>`<div class="fg"><span class="fl">${DIMLAB[k]}</span><div class="chips">${vs.map(v=>{
     const n=base.filter(e=>rMatch(e,k)&&DIMS[k](e).includes(v)).length;
     return `<button type="button" class="chip sm ${R.f[k].includes(v)?'on':''} ${!n&&!R.f[k].includes(v)?'zero':''}" data-fk="${k}" data-fv="${esc(v)}">${k==='plat'&&v!=='(sem rede)'?platDot(v):''}${esc(v)} <span class="cn">${n}</span></button>`}).join('')}</div></div>`).join('');
@@ -1271,7 +1292,7 @@ function renderRel(){
   const bd=B('dow'); vbars($('#rDow'),'dow',[1,2,3,4,5,6,0].map(w=>({k:String(w),label:DOWS[w],short:DOWS[w].slice(0,3),v:bd.filter(e=>dow(e.date)===w).length})));
   const bh=B('hour'); vbars($('#rHour'),'hour',[...Array(18)].map((_,i)=>i+6).map(h=>({k:String(h),label:hh(h),short:String(h),v:bh.filter(e=>hourOf(e)===h).length})));
   const bs=B('status'),bl=B('link');
-  hbars($('#rQual'),'status',['Publicado','Agendado'].map(x=>({k:x,label:x,v:bs.filter(e=>(e.status||'Publicado')===x).length,color:x==='Agendado'?'#2f5fd0':'#2b2f36'})),bs.length);
+  hbars($('#rQual'),'status',[...new Set(['Publicado','Agendado',...bs.map(e=>e.status).filter(Boolean)])].map(x=>({k:x,label:x,v:bs.filter(e=>(e.status||'Publicado')===x).length,color:x==='Agendado'?'#2f5fd0':x==='Publicado'?'#2b2f36':'#8a929d'})),bs.length);
   const pl2=bl.filter(e=>e.ativ==='Postagem');
   hbars($('#rLink'),'link',['Com link','Sem link'].map(x=>({k:x,label:x,v:pl2.filter(e=>linkOf(e)===x).length,color:x==='Sem link'?'#b26a00':'#2b2f36'})),pl2.length,'postagens');
 
@@ -1285,7 +1306,7 @@ function renderRel(){
     rows.slice(R.page*per,R.page*per+per).map(e=>{const l=safeUrl(e.link);return `<tr class="click" data-id="${e.id}">
       <td class="nw">${fmtD(e.date)} <span class="muted">${esc(e.slot||(e.regAt||'').slice(11))}</span></td><td>${esc(e.autor)}</td><td>${esc(e.ativ)}</td>
       <td class="nw">${(e.plats||[]).map(p=>`<span title="${p}">${platDot(p)}</span>`).join(' ')||'<span class="muted">—</span>'}</td><td>${esc(e.tipo)}</td>
-      <td class="pa">${esc(e.pauta)}</td><td><span class="pill ${e.status==='Agendado'?'info':'ok'}">${esc(e.status)}</span></td>
+      <td class="pa">${esc(e.pauta)}</td><td><span class="pill ${statusCls(e.status)}">${esc(e.status)}</span></td>
       <td>${l?`<a href="${esc(l)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">abrir ↗</a>`:(e.ativ==='Postagem'?'<span class="pill warn">sem link</span>':'')}</td></tr>`}).join('')+'</table>'+
     (rows.length?'':'<p class="muted">Nenhum registro com estes filtros.</p>');
   $('#rTable').querySelectorAll('[data-s]').forEach(x=>x.onclick=()=>{R.sort={k:x.dataset.s,d:R.sort.k===x.dataset.s?-R.sort.d:1};renderRel()});
@@ -1298,14 +1319,14 @@ function renderRel(){
 }
 function editModal(e){
   if(!e) return; const can=e.autor===me||isAdmin; let ep=(e.plats||[]).slice(); const dis=can?'':'disabled';
-  const slotOpts=d=>['',...slotsFor(d),...(e.slot&&!slotsFor(d).includes(e.slot)?[e.slot]:[])].map(x=>`<option value="${x}" ${x===(e.slot||'')?'selected':''}>${x||'Sem horário'}</option>`).join('');
+  const slotOpts=d=>['',...slotsFor(d)].map(x=>`<option value="${x}">${x||'Sem horário'}</option>`).join('')+optOutro('Outro horário (digitar)');
   openModal(`<div class="row"><h3>${can?'Editar registro':'Detalhes do registro'}</h3><span class="sp"></span>${avatar(e.autor)}<b>${esc(e.autor)}</b></div>
     <p class="small muted" style="margin:4px 0 12px">Registrado em ${esc(e.regAt||'—')}${e.editBy?` · editado por ${esc(e.editBy)}`:''}${can?'':' · só o autor ou o gestor pode editar'}</p>
     <div class="tm-card">
-      <div class="row"><label class="f" style="flex:1">Data<input type="date" id="eD" value="${e.date}" ${dis}></label><label class="f" style="flex:1">Horário da grade<select id="eS" ${dis}>${slotOpts(e.date)}</select></label></div>
+      <div class="row"><label class="f" style="flex:1">Data<input type="date" id="eD" value="${e.date}" ${dis}></label><label class="f" style="flex:1">Horário da grade<select id="eS" ${dis}>${slotOpts(e.date)}</select><input type="time" id="eSX" class="hidden ox" ${dis}></label></div>
       <div class="row"><label class="f" style="flex:1">Atividade<select id="eA" ${dis}>${ATIVS.map(x=>`<option ${x===e.ativ?'selected':''}>${x}</option>`).join('')}</select></label>
-        <label class="f" style="flex:1">Categoria<select id="eT" ${dis}>${[...new Set([...TIPOS,e.tipo])].map(x=>`<option ${x===e.tipo?'selected':''}>${esc(x)}</option>`).join('')}</select></label>
-        <label class="f" style="flex:1">Status<select id="eSt" ${dis}><option ${e.status!=='Agendado'?'selected':''}>Publicado</option><option ${e.status==='Agendado'?'selected':''}>Agendado</option></select></label></div>
+        <label class="f" style="flex:1">Categoria<select id="eT" ${dis}>${tipoOptions()}</select><input type="text" id="eTX" class="hidden ox" maxlength="40" placeholder="Digite a categoria" ${dis}></label>
+        <label class="f" style="flex:1">Status<select id="eSt" ${dis}>${statusOptions()}</select><input type="text" id="eStX" class="hidden ox" maxlength="30" placeholder="Ex.: Em produção" ${dis}></label></div>
       <label class="f">Redes<div class="chips" id="eP"></div></label>
       <label class="f">Pauta<input type="text" id="ePa" maxlength="200" value="${esc(e.pauta)}" ${dis}></label>
       <label class="f">Link<input type="url" id="eL" value="${esc(e.link||'')}" placeholder="https://" ${dis}></label>
@@ -1313,14 +1334,18 @@ function editModal(e){
     </div>
     <div class="row" style="margin-top:12px">${can?'<button class="btn ghost" id="eDel">Excluir</button>':''}<span class="sp"></span><button class="btn ghost" id="eNo">Fechar</button>${can?'<button class="btn red" id="eOk">Salvar</button>':''}</div>`);
   const drawP=()=>{buildChips($('#eP'),PLATS,ep,true,v=>{if(!can)return;ep=ep.includes(v)?ep.filter(x=>x!==v):[...ep,v];drawP()})}; drawP();
-  $('#eD').onchange=()=>{$('#eS').innerHTML=slotOpts($('#eD').value)};
+  setWithOther($('#eS'),$('#eSX'),e.slot||''); setWithOther($('#eT'),$('#eTX'),e.tipo||'Notícia Geral'); setWithOther($('#eSt'),$('#eStX'),e.status||'Publicado');
+  wireOther($('#eS'),$('#eSX')); wireOther($('#eT'),$('#eTX')); wireOther($('#eSt'),$('#eStX'));
+  $('#eD').onchange=()=>{const v=readOther($('#eS'),$('#eSX'));$('#eS').innerHTML=slotOpts($('#eD').value);setWithOther($('#eS'),$('#eSX'),v)};
   $('#eNo').onclick=closeModal;
   if(!can) return;
   $('#eDel').onclick=async()=>{ if($('#eDel').dataset.c!=='1'){$('#eDel').dataset.c='1';$('#eDel').textContent='Confirmar exclusão';$('#eDel').style.color='var(--bad)';return}
     try{await run('deleteEntry',me,token,e.id);toast('Registro excluído');closeModal();delete repCache[e.date.slice(0,7)];loadRel();refresh(true)}catch(x){toast('Erro: '+errMsg(x))} };
   $('#eOk').onclick=async()=>{
-    const body={id:e.id,date:$('#eD').value,slot:$('#eS').value,ativ:$('#eA').value,plats:ep,tipo:$('#eT').value,status:$('#eSt').value,pauta:$('#ePa').value.trim(),link:$('#eL').value.trim(),obs:$('#eO').value.trim()};
-    if(!body.pauta){toast('Escreva a pauta');return} if(body.link&&!safeUrl(body.link)){toast('Link inválido');return}
+    const body={id:e.id,date:$('#eD').value,slot:readOther($('#eS'),$('#eSX')),ativ:$('#eA').value,plats:ep,tipo:readOther($('#eT'),$('#eTX')),status:readOther($('#eSt'),$('#eStX')),pauta:$('#ePa').value.trim(),link:$('#eL').value.trim(),obs:$('#eO').value.trim()};
+    if(!body.pauta){toast('Escreva a pauta');return}
+    if($('#eS').value===OUTRO&&!/^\d{2}:\d{2}$/.test(body.slot)){toast('Digite o horário');return}
+    if(!body.tipo){toast('Digite a categoria');return} if(!body.status){toast('Digite o status');return} if(body.link&&!safeUrl(body.link)){toast('Link inválido');return}
     if(body.ativ==='Postagem'&&!ep.length){toast('Marque ao menos uma rede');return}
     if(body.ativ==='Postagem'&&ep.some(p=>pc(p).mode==='grade')&&!body.slot){toast('Escolha o horário da grade');return}
     $('#eOk').disabled=true;

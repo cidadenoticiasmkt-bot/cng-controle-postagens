@@ -155,7 +155,7 @@ function rowToEntry_(r) {
     id: String(r[0]), date: date, slot: cellText_(r[3], 'time'), ativ: String(r[4] || ''),
     plats: String(r[5] || '').split('+').map(function (x) { return x.trim(); }).filter(String),
     tipo: unq_(r[6]), pauta: unq_(r[7]), autor: String(r[8] || ''),
-    link: unq_(r[9]), status: String(r[10] || ''), obs: unq_(r[11]),
+    link: unq_(r[9]), status: unq_(r[10]) || 'Publicado', obs: unq_(r[11]),
     regAt: cellText_(r[12]), editBy: String(r[13] || ''), createdAt: Number(r[14]) || 0
   };
 }
@@ -242,7 +242,7 @@ function cleanEntry_(e) {
   const out = {
     date: clean_(e.date, 10), slot: clean_(e.slot, 5), ativ: clean_(e.ativ, 40),
     plats: (e.plats || []).filter(function (p) { return PLATS.indexOf(p) >= 0; }),
-    tipo: clean_(e.tipo, 40), status: e.status === 'Agendado' ? 'Agendado' : 'Publicado',
+    tipo: clean_(e.tipo, 40) || 'Outro', status: clean_(e.status, 30) || 'Publicado',
     pauta: clean_(e.pauta, 200), link: clean_(e.link, 500), obs: clean_(e.obs, 500)
   };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(out.date)) throw new Error('Data inválida.');
@@ -251,7 +251,7 @@ function cleanEntry_(e) {
   if (!out.pauta) throw new Error('Escreva a pauta.');
   if (out.link && !/^https?:\/\//i.test(out.link)) throw new Error('Link inválido.');
   // evita fórmulas injetadas na planilha
-  ['pauta', 'obs', 'tipo', 'link'].forEach(function (k) { if (/^[=+\-@]/.test(out[k])) out[k] = "'" + out[k]; });
+  ['pauta', 'obs', 'tipo', 'link', 'status'].forEach(function (k) { if (/^[=+\-@]/.test(out[k])) out[k] = "'" + out[k]; });
   return out;
 }
 
