@@ -102,7 +102,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid #c6e43c88;border-color
 .chart .bar{fill:var(--limeink)} .chart .bar.low{fill:#9aa1aa} .chart .nodata{fill:#e3e6ea}
 .hb{padding:8px 0;border-bottom:1px solid var(--line)} .hb:last-child{border-bottom:0}
 .track{height:8px;background:#eef0f2;border-radius:99px;overflow:hidden;margin-top:6px} .track i{display:block;height:100%;border-radius:99px}
-.pr{display:grid;grid-template-columns:110px 1fr 36px;gap:10px;align-items:center;padding:5px 0;font-size:13px}
+.pr{display:grid;grid-template-columns:minmax(100px,45%) 1fr 36px;gap:10px;align-items:center;padding:5px 0;font-size:13px}
 .pr .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pr .stk{display:flex;gap:2px;height:14px} .pr .stk i{display:block;height:100%;border-radius:3px;min-width:3px}
 .pr .vl{text-align:right;font-variant-numeric:tabular-nums}
@@ -282,7 +282,7 @@ table.simple th{color:var(--mute);font-size:12px;text-transform:uppercase}
       <div class="card"><h3>Por atividade</h3><div id="rAtiv"></div></div>
     </div>
     <div class="pgrid g3">
-      <div class="card"><h3>Por categoria</h3><div id="rCat"></div></div>
+      <div class="card"><h3>Por categoria</h3><div id="rCat"></div><h3 style="margin-top:14px">Quadros fixos<small>clique para filtrar</small></h3><div id="rQuadro"></div></div>
       <div class="card"><h3>Por dia da semana</h3><div id="rDow"></div><h3 style="margin-top:14px">Por horário</h3><div id="rHour"></div></div>
       <div class="card"><h3>Qualidade dos registros</h3><div class="small muted" style="margin-top:4px">Status</div><div id="rQual"></div><div class="small muted" style="margin-top:10px">Postagens com link</div><div id="rLink"></div></div>
     </div>
@@ -333,7 +333,7 @@ table.simple th{color:var(--mute);font-size:12px;text-transform:uppercase}
             <div class="chips" id="fPlat"></div>
           </label>
           <div class="row">
-            <label class="f" style="flex:1">Tipo / categoria<select id="fTipo"></select><input type="text" id="fTipoX" class="hidden ox" maxlength="40" placeholder="Digite a categoria"></label>
+            <label class="f" style="flex:1">Tipo / categoria<select id="fTipo"></select><input type="text" id="fTipoX" class="hidden ox" maxlength="40" placeholder="Digite a categoria"><select id="fQuadro" class="hidden ox"></select></label>
             <label class="f" style="flex:1">Status<select id="fStatus"></select><input type="text" id="fStatusX" class="hidden ox" maxlength="30" placeholder="Ex.: Em produção, Aguardando aprovação"></label>
           </div>
           <label class="f">Tema / pauta<input type="text" id="fPauta" maxlength="200" placeholder="Ex.: Acidente na BR-060 em Rio Verde" required></label>
@@ -465,7 +465,11 @@ const PLATS = [
   {id:'YouTube', c:'#e5392e'}, {id:'Site', c:'#2f5fd0'}
 ];
 const ATIVS = ['Postagem','Vídeo (matéria)','Captação de vídeo','Edição de vídeo','Trabalho extra','Outro'];
-const TIPOS = ['Notícia Geral','Política','Polícia','Esportes','Saúde','Agro','Devocional','Post RV','Publi','Entretenimento','Utilidade pública','Outro'];
+const TIPOS = ['Notícia Geral','Cidades Próximas','Goiás','Brasil/Mundo','Política','Polícia','Esportes','Saúde','Agro','Devocional','Post RV','Publi','Entretenimento','Utilidade pública','Quadro Fixo','Outro'];
+const QF='Quadro Fixo', QSEP=' · ';
+const QUADROS=['Bom Dia Rio Verde','Clima da Semana','Cotação do Campo','Esportes','Saúde em Dia','Negócios & Campo','O Povo Repórter','Onde Comer em RV','Agenda do Fim de Semana','Bairro em Foco'];
+const catOf=t=>String(t||'').startsWith(QF)?QF:(t||'—');
+const quadroOf=t=>String(t||'').startsWith(QF+QSEP)?String(t).slice((QF+QSEP).length):null;
 const COLORS = ['#2b2f36','#4d6a00','#2f5fd0','#8a5a00','#7b3fc4','#0e7c86','#a3366a','#4a525e'];
 const DEFAULT_CFG = {
   weekday:{start:7,end:22,step:1},
@@ -677,6 +681,12 @@ function setWithOther(sel,inp,val){
 }
 function readOther(sel,inp){return sel.value===OUTRO?inp.value.trim():sel.value}
 function tipoOptions(){return TIPOS.filter(t=>t!=='Outro').map(t=>`<option>${t}</option>`).join('')+optOutro('Outro (digitar)')}
+function quadroOptions(){return `<option value="">Escolha o quadro…</option>`+QUADROS.map(q=>`<option>${esc(q)}</option>`).join('')}
+function wireTipo(sel,inp,qs){qs.innerHTML=quadroOptions();sel.addEventListener('change',()=>{qs.classList.toggle('hidden',sel.value!==QF);if(sel.value===QF)qs.focus()})}
+function setTipo(sel,inp,qs,val){const q=quadroOf(val);
+  if(q!=null||val===QF){setWithOther(sel,inp,QF);qs.value=QUADROS.includes(q)?q:'';qs.classList.remove('hidden')}
+  else{setWithOther(sel,inp,val);qs.value='';qs.classList.add('hidden')}}
+function readTipo(sel,inp,qs){const v=readOther(sel,inp);if(v!==QF)return v;return qs.value?QF+QSEP+qs.value:''}
 function statusOptions(){return STATUS_OPTS.map(t=>`<option>${t}</option>`).join('')+optOutro('Outro (digitar)')}
 function statusCls(st){return st==='Agendado'?'info':st==='Publicado'||!st?'ok':''}
 function fillSlots(keep){
@@ -686,7 +696,7 @@ function fillSlots(keep){
   $('#fSlot').innerHTML = opts.map(x=>`<option value="${x}">${x||'Sem horário (meta do dia / produção)'}</option>`).join('')+optOutro('Outro horário (digitar)');
   setWithOther($('#fSlot'),$('#fSlotX'),cur);
 }
-wireOther($('#fSlot'),$('#fSlotX')); wireOther($('#fTipo'),$('#fTipoX')); wireOther($('#fStatus'),$('#fStatusX'));
+wireOther($('#fSlot'),$('#fSlotX')); wireOther($('#fTipo'),$('#fTipoX')); wireTipo($('#fTipo'),$('#fTipoX'),$('#fQuadro')); wireOther($('#fStatus'),$('#fStatusX'));
 function resetForm(){
   editingId=null;
   $('#formTitle').textContent='Registrar o que foi feito';
@@ -695,7 +705,7 @@ function resetForm(){
   const m=member(me);
   fAtiv = (me==='Vitor')?'Vídeo (matéria)':(me==='Bruno')?'Trabalho extra':'Postagem';
   fPlats = (m&&m.plats&&m.plats.length<=2)?m.plats.slice():[];
-  $('#fTipo').innerHTML = tipoOptions(); setWithOther($('#fTipo'),$('#fTipoX'),'Notícia Geral');
+  $('#fTipo').innerHTML = tipoOptions(); setTipo($('#fTipo'),$('#fTipoX'),$('#fQuadro'),'Notícia Geral');
   $('#fStatus').innerHTML = statusOptions(); setWithOther($('#fStatus'),$('#fStatusX'),'Publicado');
   ['#fPauta','#fLink','#fObs'].forEach(s=>$(s).value='');
   dupAck=false; $('#fDup').classList.add('hidden');
@@ -707,7 +717,7 @@ function startEdit(e){
   $('#fSave').textContent='Salvar alterações'; $('#fCancel').classList.remove('hidden');
   $('#fDate').value=e.date; fAtiv=e.ativ||'Postagem'; fPlats=(e.plats||[]).slice();
   renderFormChips(); fillSlots(e.slot||'');
-  $('#fTipo').innerHTML = tipoOptions(); setWithOther($('#fTipo'),$('#fTipoX'),e.tipo||'Notícia Geral');
+  $('#fTipo').innerHTML = tipoOptions(); setTipo($('#fTipo'),$('#fTipoX'),$('#fQuadro'),e.tipo||'Notícia Geral');
   $('#fStatus').innerHTML = statusOptions(); setWithOther($('#fStatus'),$('#fStatusX'),e.status||'Publicado');
   $('#fPauta').value=e.pauta||''; $('#fLink').value=e.link||''; $('#fObs').value=e.obs||'';
   window.scrollTo({top:0,behavior:'smooth'});
@@ -749,7 +759,8 @@ $('#form').onsubmit=async ev=>{
   const date=$('#fDate').value, slot=readOther($('#fSlot'),$('#fSlotX'));
   if(!date){toast('Escolha a data');return}
   if($('#fSlot').value===OUTRO&&!/^\d{2}:\d{2}$/.test(slot)){toast('Digite o horário (ex.: 14:35)');return}
-  const tipoV=readOther($('#fTipo'),$('#fTipoX')), statusV=readOther($('#fStatus'),$('#fStatusX'));
+  const tipoV=readTipo($('#fTipo'),$('#fTipoX'),$('#fQuadro')), statusV=readOther($('#fStatus'),$('#fStatusX'));
+  if($('#fTipo').value===QF&&!tipoV){toast('Escolha qual quadro fixo');$('#fQuadro').focus();return}
   if(!tipoV){toast('Digite a categoria');return}
   if(!statusV){toast('Digite o status');return}
   if(fAtiv==='Postagem'&&!fPlats.length){toast('Marque onde foi postado');return}
@@ -1160,7 +1171,7 @@ function renderPainel(){
   $('#pHeat').innerHTML=t+`</table><div class="ramp"><span class="small muted">menos</span>${RAMP.map(c=>`<i style="background:${c}"></i>`).join('')}<span class="small muted">mais</span></div>`;
 
   // E. categorias
-  const cc={}; posts.forEach(e=>cc[e.tipo]=(cc[e.tipo]||0)+1);
+  const cc={}; posts.forEach(e=>{const c=catOf(e.tipo);cc[c]=(cc[c]||0)+1});
   const top=Object.entries(cc).sort((a,b)=>b[1]-a[1]).slice(0,8); const cm=Math.max(1,...top.map(x=>x[1]));
   $('#pCats').innerHTML=top.length?top.map(([k,v])=>`<div class="pr" data-tip="<b>${esc(k)}</b>: ${v} (${Math.round(v/posts.length*100)}%)"><span class="nm">${esc(k)}</span><span class="stk"><i style="width:${v/cm*100}%;background:#2b2f36"></i></span><b class="vl">${v}</b></div>`).join(''):'<p class="muted small">Sem postagens no período.</p>';
 
@@ -1186,9 +1197,9 @@ document.querySelectorAll('#pPer button').forEach(b=>b.onclick=()=>{pPer=+b.data
 
 /* ======================= RELATÓRIOS ======================= */
 const R={mode:'mes',month:null,from:null,to:null,cmp:true,q:'',page:0,sort:{k:'date',d:-1},
-  f:{autor:[],plat:[],tipo:[],ativ:[],status:[],link:[],dow:[],hour:[],date:[]}};
+  f:{autor:[],plat:[],tipo:[],quadro:[],ativ:[],status:[],link:[],dow:[],hour:[],date:[]}};
 const repCache={}; let repBusy=false;
-const DIMLAB={autor:'Funcionário',plat:'Rede',tipo:'Categoria',ativ:'Atividade',status:'Status',link:'Link',dow:'Dia da semana',hour:'Horário',date:'Dia'};
+const DIMLAB={autor:'Funcionário',plat:'Rede',tipo:'Categoria',quadro:'Quadro fixo',ativ:'Atividade',status:'Status',link:'Link',dow:'Dia da semana',hour:'Horário',date:'Dia'};
 function monthsBetween(a,b){const o=[];let m=a.slice(0,7);while(m<=b.slice(0,7)){o.push(m);const [y,mo]=m.split('-').map(Number);m=mo===12?`${y+1}-01`:`${y}-${String(mo+1).padStart(2,'0')}`}return o}
 function lastDay(mk){const [y,m]=mk.split('-').map(Number);return `${mk}-${String(new Date(Date.UTC(y,m,0)).getUTCDate()).padStart(2,'0')}`}
 function daysIn(a,b){const o=[];for(let d=a;d<=b&&o.length<400;d=addDays(d,1))o.push(d);return o}
@@ -1204,7 +1215,7 @@ async function ensureMonths(list){
 function repEntries(a,b){let o=[];monthsBetween(a,b).forEach(m=>o=o.concat(repCache[m]||[]));return o.filter(e=>e.date>=a&&e.date<=b)}
 function hourOf(e){const h=parseInt((e.slot||(e.regAt||'').slice(11)).slice(0,2),10);return isNaN(h)?null:h}
 const linkOf=e=>safeUrl(e.link)?'Com link':'Sem link';
-const DIMS={autor:e=>[e.autor],plat:e=>(e.plats&&e.plats.length?e.plats:['(sem rede)']),tipo:e=>[e.tipo||'—'],ativ:e=>[e.ativ],status:e=>[e.status||'Publicado'],
+const DIMS={autor:e=>[e.autor],plat:e=>(e.plats&&e.plats.length?e.plats:['(sem rede)']),tipo:e=>[catOf(e.tipo)],quadro:e=>{const q=quadroOf(e.tipo);return q?[q]:[]},ativ:e=>[e.ativ],status:e=>[e.status||'Publicado'],
   link:e=>[linkOf(e)],dow:e=>[String(dow(e.date))],hour:e=>{const h=hourOf(e);return h==null?[]:[String(h)]},date:e=>[e.date]};
 function fLabel(k,v){return k==='dow'?DOWS[+v]:k==='hour'?hh(+v):k==='date'?fmtD(v):v}
 function rMatch(e,skip){
@@ -1268,7 +1279,7 @@ function renderRel(){
   const list=base.filter(e=>rMatch(e)), plist=prev.filter(e=>rMatch(e,'date'));
   // filtros (opções)
   const opts={autor:[...new Set([...team().map(t=>t.name),...base.map(e=>e.autor)])],plat:[...PLATS.map(p=>p.id),'(sem rede)'],
-    tipo:[...new Set([...TIPOS,...base.map(e=>e.tipo).filter(Boolean)])],ativ:ATIVS,status:[...new Set(['Publicado','Agendado',...base.map(e=>e.status).filter(Boolean)])],link:['Com link','Sem link']};
+    tipo:[...new Set([...TIPOS,...base.map(e=>catOf(e.tipo)).filter(Boolean)])],quadro:[...new Set([...QUADROS,...base.map(e=>quadroOf(e.tipo)).filter(Boolean)])],ativ:ATIVS,status:[...new Set(['Publicado','Agendado',...base.map(e=>e.status).filter(Boolean)])],link:['Com link','Sem link']};
   $('#rFilters').innerHTML=Object.entries(opts).map(([k,vs])=>`<div class="fg"><span class="fl">${DIMLAB[k]}</span><div class="chips">${vs.map(v=>{
     const n=base.filter(e=>rMatch(e,k)&&DIMS[k](e).includes(v)).length;
     return `<button type="button" class="chip sm ${R.f[k].includes(v)?'on':''} ${!n&&!R.f[k].includes(v)?'zero':''}" data-fk="${k}" data-fv="${esc(v)}">${k==='plat'&&v!=='(sem rede)'?platDot(v):''}${esc(v)} <span class="cn">${n}</span></button>`}).join('')}</div></div>`).join('');
@@ -1324,8 +1335,10 @@ function renderRel(){
   const pb_=B('plat').filter(e=>e.ativ==='Postagem'); const totP=pb_.reduce((x,e)=>x+(e.plats||[]).length,0);
   hbars($('#rRede'),'plat',PLATS.map(p=>({k:p.id,label:p.id,v:pb_.filter(e=>(e.plats||[]).includes(p.id)).length,color:p.c,dot:platDot(p.id)+' '})),totP,'publicações');
   const ba=B('autor'); hbars($('#rPessoa'),'autor',[...new Set([...team().map(t=>t.name),...ba.map(e=>e.autor)])].map(n=>({k:n,label:n,v:ba.filter(e=>e.autor===n).length})).sort((x,y)=>y.v-x.v),ba.length);
-  const bt=B('tipo'); const tc={}; bt.forEach(e=>tc[e.tipo||'—']=(tc[e.tipo||'—']||0)+1);
-  hbars($('#rCat'),'tipo',Object.entries(tc).sort((x,y)=>y[1]-x[1]).slice(0,12).map(([k2,v])=>({k:k2,label:k2,v})),bt.length);
+  const bt=B('tipo'); const tc={}; bt.forEach(e=>{const c=catOf(e.tipo);tc[c]=(tc[c]||0)+1});
+  hbars($('#rCat'),'tipo',Object.entries(tc).sort((x,y)=>y[1]-x[1]).slice(0,14).map(([k2,v])=>({k:k2,label:k2,v})),bt.length);
+  const bq=B('quadro'); const qc={}; QUADROS.forEach(q=>qc[q]=0); bq.forEach(e=>{const q=quadroOf(e.tipo);if(q)qc[q]=(qc[q]||0)+1});
+  hbars($('#rQuadro'),'quadro',Object.entries(qc).sort((x,y)=>y[1]-x[1]).map(([k2,v])=>({k:k2,label:k2,v,color:'#4d6a00'})),bq.filter(e=>quadroOf(e.tipo)).length);
   const bv=B('ativ'); hbars($('#rAtiv'),'ativ',ATIVS.map(x=>({k:x,label:x,v:bv.filter(e=>e.ativ===x).length})).filter(x=>x.v||R.f.ativ.includes(x.k)),bv.length);
   const bd=B('dow'); vbars($('#rDow'),'dow',[1,2,3,4,5,6,0].map(w=>({k:String(w),label:DOWS[w],short:DOWS[w].slice(0,3),v:bd.filter(e=>dow(e.date)===w).length})));
   const bh=B('hour'); vbars($('#rHour'),'hour',[...Array(18)].map((_,i)=>i+6).map(h=>({k:String(h),label:hh(h),short:String(h),v:bh.filter(e=>hourOf(e)===h).length})));
@@ -1363,7 +1376,7 @@ function editModal(e){
     <div class="tm-card">
       <div class="row"><label class="f" style="flex:1">Data<input type="date" id="eD" value="${e.date}" ${dis}></label><label class="f" style="flex:1">Horário da grade<select id="eS" ${dis}>${slotOpts(e.date)}</select><input type="time" id="eSX" class="hidden ox" ${dis}></label></div>
       <div class="row"><label class="f" style="flex:1">Atividade<select id="eA" ${dis}>${ATIVS.map(x=>`<option ${x===e.ativ?'selected':''}>${x}</option>`).join('')}</select></label>
-        <label class="f" style="flex:1">Categoria<select id="eT" ${dis}>${tipoOptions()}</select><input type="text" id="eTX" class="hidden ox" maxlength="40" placeholder="Digite a categoria" ${dis}></label>
+        <label class="f" style="flex:1">Categoria<select id="eT" ${dis}>${tipoOptions()}</select><input type="text" id="eTX" class="hidden ox" maxlength="40" placeholder="Digite a categoria" ${dis}><select id="eQ" class="hidden ox" ${dis}></select></label>
         <label class="f" style="flex:1">Status<select id="eSt" ${dis}>${statusOptions()}</select><input type="text" id="eStX" class="hidden ox" maxlength="30" placeholder="Ex.: Em produção" ${dis}></label></div>
       <label class="f">Redes<div class="chips" id="eP"></div></label>
       <label class="f">Pauta<input type="text" id="ePa" maxlength="200" value="${esc(e.pauta)}" ${dis}></label>
@@ -1372,7 +1385,7 @@ function editModal(e){
     </div>
     <div class="row" style="margin-top:12px">${can?'<button class="btn ghost" id="eDel">Excluir</button>':''}<span class="sp"></span><button class="btn ghost" id="eNo">Fechar</button>${can?'<button class="btn red" id="eOk">Salvar</button>':''}</div>`);
   const drawP=()=>{buildChips($('#eP'),PLATS,ep,true,v=>{if(!can)return;ep=ep.includes(v)?ep.filter(x=>x!==v):[...ep,v];drawP()})}; drawP();
-  setWithOther($('#eS'),$('#eSX'),e.slot||''); setWithOther($('#eT'),$('#eTX'),e.tipo||'Notícia Geral'); setWithOther($('#eSt'),$('#eStX'),e.status||'Publicado');
+  setWithOther($('#eS'),$('#eSX'),e.slot||''); wireTipo($('#eT'),$('#eTX'),$('#eQ')); setTipo($('#eT'),$('#eTX'),$('#eQ'),e.tipo||'Notícia Geral'); setWithOther($('#eSt'),$('#eStX'),e.status||'Publicado');
   wireOther($('#eS'),$('#eSX')); wireOther($('#eT'),$('#eTX')); wireOther($('#eSt'),$('#eStX'));
   $('#eD').onchange=()=>{const v=readOther($('#eS'),$('#eSX'));$('#eS').innerHTML=slotOpts($('#eD').value);setWithOther($('#eS'),$('#eSX'),v)};
   $('#eNo').onclick=closeModal;
@@ -1380,9 +1393,10 @@ function editModal(e){
   $('#eDel').onclick=async()=>{ if($('#eDel').dataset.c!=='1'){$('#eDel').dataset.c='1';$('#eDel').textContent='Confirmar exclusão';$('#eDel').style.color='var(--bad)';return}
     try{await run('deleteEntry',me,token,e.id);toast('Registro excluído');closeModal();delete repCache[e.date.slice(0,7)];loadRel();refresh(true)}catch(x){toast('Erro: '+errMsg(x))} };
   $('#eOk').onclick=async()=>{
-    const body={id:e.id,date:$('#eD').value,slot:readOther($('#eS'),$('#eSX')),ativ:$('#eA').value,plats:ep,tipo:readOther($('#eT'),$('#eTX')),status:readOther($('#eSt'),$('#eStX')),pauta:$('#ePa').value.trim(),link:$('#eL').value.trim(),obs:$('#eO').value.trim()};
+    const body={id:e.id,date:$('#eD').value,slot:readOther($('#eS'),$('#eSX')),ativ:$('#eA').value,plats:ep,tipo:readTipo($('#eT'),$('#eTX'),$('#eQ')),status:readOther($('#eSt'),$('#eStX')),pauta:$('#ePa').value.trim(),link:$('#eL').value.trim(),obs:$('#eO').value.trim()};
     if(!body.pauta){toast('Escreva a pauta');return}
     if($('#eS').value===OUTRO&&!/^\d{2}:\d{2}$/.test(body.slot)){toast('Digite o horário');return}
+    if($('#eT').value===QF&&!body.tipo){toast('Escolha qual quadro fixo');return}
     if(!body.tipo){toast('Digite a categoria');return} if(!body.status){toast('Digite o status');return} if(body.link&&!safeUrl(body.link)){toast('Link inválido');return}
     if(body.ativ==='Postagem'&&!ep.length){toast('Marque ao menos uma rede');return}
     if(body.ativ==='Postagem'&&ep.some(p=>pc(p).mode==='grade')&&!body.slot){toast('Escolha o horário da grade');return}
