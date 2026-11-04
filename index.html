@@ -85,6 +85,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid #c6e43c88;border-color
 .gtable th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--mute);text-align:left;padding:8px;border-bottom:1px solid var(--line);background:#fafbfc;position:sticky;top:0}
 .gtable td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 .gtable tr.now td{background:#f6fbe3}
+.gtable tr.extra td{background:#f7f7f8}
 /* painel */
 .seg{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:9px;padding:3px}
 .seg button{border:0;background:transparent;padding:6px 12px;border-radius:7px;font-weight:600;color:var(--ink2)}
@@ -689,11 +690,17 @@ function setTipo(sel,inp,qs,val){const q=quadroOf(val);
 function readTipo(sel,inp,qs){const v=readOther(sel,inp);if(v!==QF)return v;return qs.value?QF+QSEP+qs.value:''}
 function statusOptions(){return STATUS_OPTS.map(t=>`<option>${t}</option>`).join('')+optOutro('Outro (digitar)')}
 function statusCls(st){return st==='Agendado'?'info':st==='Publicado'||!st?'ok':''}
+/* horários da madrugada (fora da grade, não contam atraso) */
+const NIGHT=[23,0,1,2,3,4,5,6];
+function offSlots(d){const g=slotsFor(d);return NIGHT.map(hh).filter(x=>!g.includes(x))}
+function slotSelectHtml(d,emptyLabel){
+  return `<option value="">${emptyLabel}</option><optgroup label="Grade do dia">${slotsFor(d).map(x=>`<option value="${x}">${x}</option>`).join('')}</optgroup>`+
+    `<optgroup label="Madrugada · fora da grade">${offSlots(d).map(x=>`<option value="${x}">${x}</option>`).join('')}</optgroup>`+optOutro('Outro horário (digitar)');
+}
 function fillSlots(keep){
   const d=$('#fDate').value||today();
   const s=slotsFor(d); const cur=keep!=null?keep:(fAtiv==='Postagem'?(currentSlot(d)||''):'');
-  const opts=['',...s];
-  $('#fSlot').innerHTML = opts.map(x=>`<option value="${x}">${x||'Sem horário (meta do dia / produção)'}</option>`).join('')+optOutro('Outro horário (digitar)');
+  $('#fSlot').innerHTML = slotSelectHtml(d,'Sem horário (meta do dia / produção)');
   setWithOther($('#fSlot'),$('#fSlotX'),cur);
 }
 wireOther($('#fSlot'),$('#fSlotX')); wireOther($('#fTipo'),$('#fTipoX')); wireTipo($('#fTipo'),$('#fTipoX'),$('#fQuadro')); wireOther($('#fStatus'),$('#fStatusX'));
@@ -892,13 +899,18 @@ function renderGrade(){
 
   const cur=currentSlot(d); const gp=gradePlats(); const mp=PLATS.map(p=>p.id).filter(p=>!gp.includes(p));
   let h=`<thead><tr><th>Horário</th>${gp.map(p=>`<th>${platDot(p)} ${p}</th>`).join('')}<th>Outras redes neste horário</th></tr></thead><tbody>`;
+  const nightRow=slot=>{const cov=slotCoverage(d,slot);const all=PLATS.map(p=>p.id).flatMap(p=>cov[p].map(e=>({p,e})));if(!all.length)return '';
+    return `<tr class="extra"><td class="h">${slot}<div class="small muted">fora da grade</div></td>${gp.map(p=>`<td>${cov[p].length?cellHtml(d,slot,p,cov[p]):'<span class="muted">—</span>'}</td>`).join('')}
+      <td>${all.filter(o=>!gp.includes(o.p)).length?`<div class="chips">${all.filter(o=>!gp.includes(o.p)).map(o=>`<span class="pill" title="${esc(o.e.pauta)}">${platDot(o.p)} ${o.p} · ${esc(o.e.autor)}</span>`).join('')}</div>`:'<span class="muted">—</span>'}</td></tr>`};
+  offSlots(d).filter(x=>x!=='23:00').forEach(x=>h+=nightRow(x));
   slotsFor(d).forEach(slot=>{
     const cov=slotCoverage(d,slot);
     const others=mp.flatMap(p=>cov[p].map(e=>({p,e})));
     h+=`<tr class="${slot===cur?'now':''}"><td class="h">${slot}${slot===cur?'<div class="small" style="color:var(--warn)">agora</div>':''}</td>${gp.map(p=>`<td>${cellHtml(d,slot,p,cov[p])}</td>`).join('')}
       <td>${others.length?`<div class="chips">${others.map(o=>`<span class="pill" title="${esc(o.e.pauta)}">${platDot(o.p)} ${o.p} · ${esc(o.e.autor)}</span>`).join('')}</div>`:'<span class="muted">—</span>'}</td></tr>`;
   });
-  const off=es.filter(e=>e.ativ==='Postagem'&&(!e.slot||!slotsFor(d).includes(e.slot)));
+  if(offSlots(d).includes('23:00')) h+=nightRow('23:00');
+  const off=es.filter(e=>e.ativ==='Postagem'&&(!e.slot||(!slotsFor(d).includes(e.slot)&&!offSlots(d).includes(e.slot))));
   if(off.length) h+=`<tr><td class="h">Sem horário</td><td colspan="${gp.length+1}"><div class="chips">${off.map(e=>`<span class="pill" title="${esc(e.pauta)}">${(e.plats||[]).map(platDot).join('')} ${esc(e.slot||'')} ${esc(e.autor)}: ${esc(e.pauta.slice(0,40))}</span>`).join('')}</div></td></tr>`;
   h+='</tbody>';
   $('#gTable').innerHTML=h;
@@ -1165,7 +1177,7 @@ function renderPainel(){
   const hm={}; let hmx=0; const hdays=pPer===1?[...Array(7)].map((_,i)=>addDays(today(),i-6)):days;
   allEntries().filter(e=>hdays.includes(e.date)&&e.ativ==='Postagem').forEach(e=>{const src=e.slot||(e.regAt||'').slice(11);const h=parseInt(src.slice(0,2),10);if(isNaN(h))return;const k=dow(e.date)+'_'+h;hm[k]=(hm[k]||0)+(e.plats||[]).length;hmx=Math.max(hmx,hm[k])});
   const RAMP=['#f3f8e1','#dbeba4','#b5d35c','#7fa61b','#4d6a00'];
-  const hrs=[...Array(17)].map((_,i)=>i+7); const ord=[1,2,3,4,5,6,0];
+  const hrs=[...Array(24)].map((_,i)=>i); const ord=[1,2,3,4,5,6,0];
   let t=`<table class="heat"><tr><th></th>${ord.map(w=>`<th>${DOWS[w].slice(0,3)}</th>`).join('')}</tr>`;
   hrs.forEach(h=>{t+=`<tr><th>${hh(h)}</th>${ord.map(w=>{const v=hm[w+'_'+h]||0;const c=v?RAMP[Math.min(4,Math.floor(v/Math.max(1,hmx)*4.999))]:'#f1f2f3';return `<td style="background:${c}" data-tip="${DOWS[w]} ${hh(h)}: <b>${v}</b> post(s)"></td>`}).join('')}</tr>`});
   $('#pHeat').innerHTML=t+`</table><div class="ramp"><span class="small muted">menos</span>${RAMP.map(c=>`<i style="background:${c}"></i>`).join('')}<span class="small muted">mais</span></div>`;
@@ -1341,7 +1353,7 @@ function renderRel(){
   hbars($('#rQuadro'),'quadro',Object.entries(qc).sort((x,y)=>y[1]-x[1]).map(([k2,v])=>({k:k2,label:k2,v,color:'#4d6a00'})),bq.filter(e=>quadroOf(e.tipo)).length);
   const bv=B('ativ'); hbars($('#rAtiv'),'ativ',ATIVS.map(x=>({k:x,label:x,v:bv.filter(e=>e.ativ===x).length})).filter(x=>x.v||R.f.ativ.includes(x.k)),bv.length);
   const bd=B('dow'); vbars($('#rDow'),'dow',[1,2,3,4,5,6,0].map(w=>({k:String(w),label:DOWS[w],short:DOWS[w].slice(0,3),v:bd.filter(e=>dow(e.date)===w).length})));
-  const bh=B('hour'); vbars($('#rHour'),'hour',[...Array(18)].map((_,i)=>i+6).map(h=>({k:String(h),label:hh(h),short:String(h),v:bh.filter(e=>hourOf(e)===h).length})));
+  const bh=B('hour'); vbars($('#rHour'),'hour',[...Array(24)].map((_,i)=>i).map(h=>({k:String(h),label:hh(h),short:String(h),v:bh.filter(e=>hourOf(e)===h).length})));
   const bs=B('status'),bl=B('link');
   hbars($('#rQual'),'status',[...new Set(['Publicado','Agendado',...bs.map(e=>e.status).filter(Boolean)])].map(x=>({k:x,label:x,v:bs.filter(e=>(e.status||'Publicado')===x).length,color:x==='Agendado'?'#2f5fd0':x==='Publicado'?'#2b2f36':'#8a929d'})),bs.length);
   const pl2=bl.filter(e=>e.ativ==='Postagem');
@@ -1370,7 +1382,7 @@ function renderRel(){
 }
 function editModal(e){
   if(!e) return; const can=e.autor===me||isAdmin; let ep=(e.plats||[]).slice(); const dis=can?'':'disabled';
-  const slotOpts=d=>['',...slotsFor(d)].map(x=>`<option value="${x}">${x||'Sem horário'}</option>`).join('')+optOutro('Outro horário (digitar)');
+  const slotOpts=d=>slotSelectHtml(d,'Sem horário');
   openModal(`<div class="row"><h3>${can?'Editar registro':'Detalhes do registro'}</h3><span class="sp"></span>${avatar(e.autor)}<b>${esc(e.autor)}</b></div>
     <p class="small muted" style="margin:4px 0 12px">Registrado em ${esc(e.regAt||'—')}${e.editBy?` · editado por ${esc(e.editBy)}`:''}${can?'':' · só o autor ou o gestor pode editar'}</p>
     <div class="tm-card">
