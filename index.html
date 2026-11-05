@@ -86,6 +86,10 @@ input:focus,select:focus,textarea:focus{outline:2px solid #c6e43c88;border-color
 .gtable td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 .gtable tr.now td{background:#f6fbe3}
 .gtable tr.extra td{background:#f7f7f8}
+.kpi.click{cursor:pointer;transition:box-shadow .15s,opacity .15s}
+.kpi.click:hover{box-shadow:0 0 0 2px var(--lime2)}
+.kpi.click.on{box-shadow:0 0 0 2px var(--ink)}
+.kpi.click.dim{opacity:.45}
 /* painel */
 .seg{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:9px;padding:3px}
 .seg button{border:0;background:transparent;padding:6px 12px;border-radius:7px;font-weight:600;color:var(--ink2)}
@@ -372,9 +376,11 @@ table.simple th{color:var(--mute);font-size:12px;text-transform:uppercase}
       <button class="btn ghost sm" id="gNext">▶</button>
       <button class="btn ghost sm" id="gToday">Hoje</button>
     </div>
+    <div class="row" id="gFilt" style="gap:6px;margin-bottom:10px"></div>
     <div class="kpis" id="gKpis"></div>
-    <div class="card scroll" style="padding:0"><table class="gtable" id="gTable"></table></div>
-    <p class="small muted" style="margin-top:8px">Grade: verde = publicado · azul = agendado · vermelho = horário passou sem post · cinza = ainda vai acontecer. Metas diárias: o "ritmo" compara com quanto já deveria ter saído até agora.</p>
+    <div class="card hidden" id="gList" style="margin-bottom:14px"></div>
+    <div class="card scroll" style="padding:0" id="gTableWrap"><table class="gtable" id="gTable"></table></div>
+    <p class="small muted" style="margin-top:8px" id="gLegend">Grade: verde = publicado · azul = agendado · vermelho = horário passou sem post · cinza = ainda vai acontecer. Metas diárias: o "ritmo" compara com quanto já deveria ter saído até agora.</p>
     <div class="metas" id="gMetas"></div>
   </section>
 
@@ -876,6 +882,9 @@ function gradeStats(d){
   return {need,done,late,total:s.length*gp.length};
 }
 function pctCls(p){return p>=90?'ok':p>=70?'warn':'bad'}
+let gFilter='';   // '' = tudo · nome da rede · '__prod' = vídeos e produção
+const PROD='__prod';
+function gFilterMatch(e,f){return f===PROD?e.ativ!=='Postagem':(e.ativ==='Postagem'&&(e.plats||[]).includes(f))}
 function renderGrade(){
   const d=gDate; $('#gDate').value=d;
   const hol=holidayOf(d), red=isReduced(d);
@@ -884,30 +893,44 @@ function renderGrade(){
   const pct=st.need?Math.round(st.done/st.need*100):null;
   let k='';
   gradePlats().forEach(p=>{
-    k+=`<div class="kpi"><div class="l">${platDot(p)} ${p} · grade</div><div class="v" style="color:${pct==null?'inherit':`var(--${pctCls(pct)})`}">${st.done}<span class="muted small"> / ${slotsFor(d).length}</span></div>
+    k+=`<div class="kpi click ${gFilter===p?'on':gFilter?'dim':''}" data-gf="${p}" title="Clique para ver só ${p}"><div class="l">${platDot(p)} ${p} · grade</div><div class="v" style="color:${pct==null?'inherit':`var(--${pctCls(pct)})`}">${st.done}<span class="muted small"> / ${slotsFor(d).length}</span></div>
       <div class="small ${st.late?'':'muted'}" style="${st.late?'color:var(--bad);font-weight:600':''}">${st.late?st.late+' horário(s) em atraso':pct==null?'ainda não começou':'em dia'}</div></div>`;
   });
   metaPlats().forEach(p=>{const m=metaInfo(p,d);
-    k+=`<div class="kpi"><div class="l">${platDot(p)} ${p} · meta</div><div class="v">${m.n}<span class="muted small"> / ${m.q}</span></div>${meterBar(m.n,m.q,m.cls)}<div class="small" style="margin-top:4px"><span class="pill ${m.cls}">${m.txt}</span></div></div>`;
+    k+=`<div class="kpi click ${gFilter===p?'on':gFilter?'dim':''}" data-gf="${p}" title="Clique para ver só ${p}"><div class="l">${platDot(p)} ${p} · meta</div><div class="v">${m.n}<span class="muted small"> / ${m.q}</span></div>${meterBar(m.n,m.q,m.cls)}<div class="small" style="margin-top:4px"><span class="pill ${m.cls}">${m.txt}</span></div></div>`;
   });
-  k+=`<div class="kpi"><div class="l">Vídeos produzidos</div><div class="v">${es.filter(e=>e.ativ==='Vídeo (matéria)').length}</div><div class="small muted">${es.filter(e=>e.ativ==='Trabalho extra').length} trabalho(s) extra(s)</div></div>`;
+  k+=`<div class="kpi click ${gFilter===PROD?'on':gFilter?'dim':''}" data-gf="${PROD}" title="Clique para ver vídeos e produção"><div class="l">Vídeos produzidos</div><div class="v">${es.filter(e=>e.ativ==='Vídeo (matéria)').length}</div><div class="small muted">${es.filter(e=>e.ativ==='Trabalho extra').length} trabalho(s) extra(s)</div></div>`;
   $('#gKpis').innerHTML=k;
+  $('#gKpis').querySelectorAll('[data-gf]').forEach(c=>c.onclick=()=>{gFilter=gFilter===c.dataset.gf?'':c.dataset.gf;renderGrade()});
+  const fopts=[['','Tudo',es.length],...PLATS.map(p=>[p.id,p.id,es.filter(e=>gFilterMatch(e,p.id)).length]),[PROD,'Vídeos e produção',es.filter(e=>gFilterMatch(e,PROD)).length]];
+  $('#gFilt').innerHTML='<span class="small muted">Mostrar:</span>'+fopts.map(([v,l,n])=>`<button type="button" class="chip sm ${gFilter===v?'on':''}" data-gv="${v}">${PLATS.some(p=>p.id===v)?platDot(v):''}${l} <span class="cn">${n}</span></button>`).join('');
+  $('#gFilt').querySelectorAll('[data-gv]').forEach(b=>b.onclick=()=>{gFilter=b.dataset.gv;renderGrade()});
+  if(gFilter){
+    const list=es.filter(e=>gFilterMatch(e,gFilter)).sort(bySlot);
+    const lab=gFilter===PROD?'Vídeos e produção':gFilter;
+    const extra=gFilter===PROD?'':(pc(gFilter).mode==='meta'?(()=>{const m=metaInfo(gFilter,d);return ` · meta ${m.n}/${m.q} <span class="pill ${m.cls}">${m.txt}</span>`})():pc(gFilter).mode==='grade'?` · grade ${st.done}/${slotsFor(d).length}`:'');
+    $('#gList').innerHTML=`<div class="row"><h3>${gFilter===PROD?'🎥':platDot(gFilter)} ${esc(lab)} · ${fmtD(d)}</h3><span class="pill">${list.length} registro${list.length===1?'':'s'}</span><span class="small muted">${extra}</span><span class="sp"></span><button class="btn ghost sm" id="gClr">✕ Ver tudo</button></div>
+      <div style="margin-top:6px">${list.length?list.map(e=>entryRow(e)).join(''):'<p class="muted">Nada registrado aqui neste dia.</p>'}</div>`;
+    $('#gList').classList.remove('hidden'); wireRows($('#gList')); $('#gClr').onclick=()=>{gFilter='';renderGrade()};
+  } else $('#gList').classList.add('hidden');
+  const showTable=!gFilter||(gFilter!==PROD&&pc(gFilter).mode==='grade');
+  $('#gTableWrap').classList.toggle('hidden',!showTable); $('#gLegend').classList.toggle('hidden',!showTable);
 
-  const cur=currentSlot(d); const gp=gradePlats(); const mp=PLATS.map(p=>p.id).filter(p=>!gp.includes(p));
-  let h=`<thead><tr><th>Horário</th>${gp.map(p=>`<th>${platDot(p)} ${p}</th>`).join('')}<th>Outras redes neste horário</th></tr></thead><tbody>`;
-  const nightRow=slot=>{const cov=slotCoverage(d,slot);const all=PLATS.map(p=>p.id).flatMap(p=>cov[p].map(e=>({p,e})));if(!all.length)return '';
+  const cur=currentSlot(d); const gp=gFilter&&gFilter!==PROD?gradePlats().filter(p=>p===gFilter):gradePlats(); const mp=gFilter?[]:PLATS.map(p=>p.id).filter(p=>!gp.includes(p));
+  let h=`<thead><tr><th>Horário</th>${gp.map(p=>`<th>${platDot(p)} ${p}</th>`).join('')}${gFilter?'':'<th>Outras redes neste horário</th>'}</tr></thead><tbody>`;
+  const nightRow=slot=>{const cov=slotCoverage(d,slot);const all=(gFilter?gp:PLATS.map(p=>p.id)).flatMap(p=>cov[p].map(e=>({p,e})));if(!all.length)return '';
     return `<tr class="extra"><td class="h">${slot}<div class="small muted">fora da grade</div></td>${gp.map(p=>`<td>${cov[p].length?cellHtml(d,slot,p,cov[p]):'<span class="muted">—</span>'}</td>`).join('')}
-      <td>${all.filter(o=>!gp.includes(o.p)).length?`<div class="chips">${all.filter(o=>!gp.includes(o.p)).map(o=>`<span class="pill" title="${esc(o.e.pauta)}">${platDot(o.p)} ${o.p} · ${esc(o.e.autor)}</span>`).join('')}</div>`:'<span class="muted">—</span>'}</td></tr>`};
+      ${gFilter?'':`<td>${all.filter(o=>!gp.includes(o.p)).length?`<div class="chips">${all.filter(o=>!gp.includes(o.p)).map(o=>`<span class="pill" title="${esc(o.e.pauta)}">${platDot(o.p)} ${o.p} · ${esc(o.e.autor)}</span>`).join('')}</div>`:'<span class="muted">—</span>'}</td>`}</tr>`};
   const gs=slotsFor(d);
   [...Array(24)].map((_,i)=>hh(i)).forEach(slot=>{
     if(!gs.includes(slot)){h+=nightRow(slot);return}
     const cov=slotCoverage(d,slot);
     const others=mp.flatMap(p=>cov[p].map(e=>({p,e})));
     h+=`<tr class="${slot===cur?'now':''}"><td class="h">${slot}${slot===cur?'<div class="small" style="color:var(--warn)">agora</div>':''}</td>${gp.map(p=>`<td>${cellHtml(d,slot,p,cov[p])}</td>`).join('')}
-      <td>${others.length?`<div class="chips">${others.map(o=>`<span class="pill" title="${esc(o.e.pauta)}">${platDot(o.p)} ${o.p} · ${esc(o.e.autor)}</span>`).join('')}</div>`:'<span class="muted">—</span>'}</td></tr>`;
+      ${gFilter?'':`<td>${others.length?`<div class="chips">${others.map(o=>`<span class="pill" title="${esc(o.e.pauta)}">${platDot(o.p)} ${o.p} · ${esc(o.e.autor)}</span>`).join('')}</div>`:'<span class="muted">—</span>'}</td>`}</tr>`;
   });
-  const off=es.filter(e=>e.ativ==='Postagem'&&(!e.slot||(!slotsFor(d).includes(e.slot)&&!offSlots(d).includes(e.slot))));
-  if(off.length) h+=`<tr><td class="h">Sem horário</td><td colspan="${gp.length+1}"><div class="chips">${off.map(e=>`<span class="pill" title="${esc(e.pauta)}">${(e.plats||[]).map(platDot).join('')} ${esc(e.slot||'')} ${esc(e.autor)}: ${esc(e.pauta.slice(0,40))}</span>`).join('')}</div></td></tr>`;
+  const off=es.filter(e=>e.ativ==='Postagem'&&(!gFilter||(e.plats||[]).includes(gFilter))&&(!e.slot||(!slotsFor(d).includes(e.slot)&&!offSlots(d).includes(e.slot))));
+  if(off.length) h+=`<tr><td class="h">Sem horário</td><td colspan="${gp.length+(gFilter?0:1)}"><div class="chips">${off.map(e=>`<span class="pill" title="${esc(e.pauta)}">${(e.plats||[]).map(platDot).join('')} ${esc(e.slot||'')} ${esc(e.autor)}: ${esc(e.pauta.slice(0,40))}</span>`).join('')}</div></td></tr>`;
   h+='</tbody>';
   $('#gTable').innerHTML=h;
   $('#gTable').querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{
@@ -915,7 +938,7 @@ function renderGrade(){
     renderFormChips(); fillSlots(b.dataset.add); $('#fSlot').value=b.dataset.add; $('#fPauta').focus();
   });
   // listas das metas
-  $('#gMetas').innerHTML = metaPlats().map(p=>{const m=metaInfo(p,d);
+  $('#gMetas').innerHTML = gFilter?'':metaPlats().map(p=>{const m=metaInfo(p,d);
     return `<div class="card"><div class="row"><h3>${platDot(p)} ${p}</h3><span class="sp"></span><b>${m.n} / ${m.q}</b></div>${meterBar(m.n,m.q,m.cls)}
       <div style="margin-top:8px">${m.posts.length?m.posts.sort(bySlot).map(e=>{const l=safeUrl(e.link);return `<div class="small" style="padding:4px 0;border-bottom:1px solid var(--line)"><b>${esc(e.slot||e.regAt.slice(11))}</b> · ${esc(e.autor)} · ${l?`<a href="${esc(l)}" target="_blank" rel="noopener">${esc(e.pauta)}</a>`:esc(e.pauta)}${e.status&&e.status!=='Publicado'?` <span class="pill ${statusCls(e.status)}">${esc(e.status.toLowerCase())}</span>`:''}</div>`}).join(''):'<p class="small muted">Nenhum post ainda.</p>'}</div></div>`}).join('');
 }
@@ -1436,7 +1459,7 @@ $('#rCsv').onclick=async()=>{
   catch(x){try{await navigator.clipboard.writeText(csv);toast('CSV copiado')}catch(y){toast('Não foi possível exportar')}}
 };
 
-const APP_VERSION='v2026.11.04-grade24h';
+const APP_VERSION='v2026.11.05-filtro-grade';
 try{$('#appVer').textContent=APP_VERSION}catch(e){}
 /* ======================= boot ======================= */
 gDate=today(); eDate=today();
