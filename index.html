@@ -86,6 +86,11 @@ input:focus,select:focus,textarea:focus{outline:2px solid #c6e43c88;border-color
 .gtable td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 .gtable tr.now td{background:#f6fbe3}
 .gtable tr.extra td{background:#f7f7f8}
+table.pt td{vertical-align:middle} table.pt tr.click:hover td,table.pt tr.open td{background:#f6f8ef}
+table.pt .big{font-size:20px;font-family:Archivo}
+.pbar{display:flex;gap:2px;height:14px} .pbar i{display:block;height:100%;border-radius:3px;min-width:4px}
+table.pt tr.det td{background:#fbfcf8;padding:6px 14px 12px}
+.pgroup{margin-top:8px} .pgroup .ph{font-weight:700;font-size:13px;margin:6px 0 2px}
 .ed{cursor:pointer} .cell .ed:hover,.pill.ed:hover,div.ed:hover{text-decoration:underline;filter:brightness(.95)}
 .kpi.click{cursor:pointer;transition:box-shadow .15s,opacity .15s}
 .kpi.click:hover{box-shadow:0 0 0 2px var(--lime2)}
@@ -124,6 +129,7 @@ ul.ins{margin:8px 0 0;padding-left:18px} ul.ins li{margin:6px 0}
 /* relatórios */
 .rtool{box-shadow:0 4px 14px #0000000d}
 @media (max-width:1380px){.clock{display:none}}
+@media (max-width:1480px){#appVer{display:none}} nav button{padding:7px 9px}
 .pgrid.g3{grid-template-columns:1fr 1fr 1fr}
 @media (max-width:1000px){.pgrid.g3{grid-template-columns:1fr}}
 .chip.sm{padding:4px 10px;font-size:12px}
@@ -226,6 +232,7 @@ table.simple th{color:var(--mute);font-size:12px;text-transform:uppercase}
       <button data-v="relatorios">Relatórios</button>
       <button data-v="registrar">Registrar</button>
       <button data-v="grade">Grade do dia</button>
+      <button data-v="producao">Produção</button>
       <button data-v="equipe">Equipe</button>
       <button data-v="historico">Histórico</button>
       <button data-v="ajustes" id="navAjustes">Ajustes</button>
@@ -383,6 +390,21 @@ table.simple th{color:var(--mute);font-size:12px;text-transform:uppercase}
     <div class="card scroll" style="padding:0" id="gTableWrap"><table class="gtable" id="gTable"></table></div>
     <p class="small muted" style="margin-top:8px" id="gLegend">Grade: verde = publicado · azul = agendado · vermelho = horário passou sem post · cinza = ainda vai acontecer. Metas diárias: o "ritmo" compara com quanto já deveria ter saído até agora.</p>
     <div class="metas" id="gMetas"></div>
+  </section>
+
+  <!-- PRODUÇÃO -->
+  <section id="v-producao" class="hidden">
+    <div class="row" style="margin-bottom:12px">
+      <div><h2 id="prTitle">Produção do dia</h2><div class="small muted">Quantas notícias cada um fez no dia (pela data do registro) e quando cada uma entra no ar.</div></div>
+      <span class="sp"></span><span id="prStatus"></span>
+      <button class="btn ghost sm" id="prPrev">◀</button><input type="date" id="prDate" style="width:auto"><button class="btn ghost sm" id="prNext">▶</button>
+      <button class="btn ghost sm" id="prToday">Hoje</button><button class="btn ghost sm" id="prReload" title="Buscar dados novos">↻</button>
+    </div>
+    <div class="kpis" id="prKpis"></div>
+    <div class="card">
+      <div class="row"><h3>Por funcionário</h3><span class="small muted">clique numa linha para ver as notícias</span><span class="sp"></span><div class="legend" id="prLegend" style="margin:0"></div></div>
+      <div class="scroll" id="prTable" style="margin-top:8px"></div>
+    </div>
   </section>
 
   <!-- EQUIPE -->
@@ -640,7 +662,7 @@ function enterApp(){
   $('#navAjustes').classList.toggle('hidden',!isAdmin);
   resetForm();
   const h=(location.hash||'').slice(1);
-  showView(['painel','relatorios','registrar','grade','equipe','historico','ajustes'].includes(h)&&(h!=='ajustes'||isAdmin)?h:(isAdmin?'painel':'registrar'));
+  showView(['painel','relatorios','producao','registrar','grade','equipe','historico','ajustes'].includes(h)&&(h!=='ajustes'||isAdmin)?h:(isAdmin?'painel':'registrar'));
 }
 
 /* ======================= navegação ======================= */
@@ -656,6 +678,7 @@ function showView(v){
   if(v==='registrar') subscribeMonth($('#fDate').value.slice(0,7));
   if(v==='painel') subscribeMonth(today().slice(0,7));
   if(v==='relatorios') openRel();
+  if(v==='producao') openProd();
   if(v==='ajustes') renderSettings();
   render();
 }
@@ -1423,7 +1446,7 @@ function editModal(e){
   $('#eNo').onclick=closeModal;
   if(!can) return;
   $('#eDel').onclick=async()=>{ if($('#eDel').dataset.c!=='1'){$('#eDel').dataset.c='1';$('#eDel').textContent='Confirmar exclusão';$('#eDel').style.color='var(--bad)';return}
-    try{await run('deleteEntry',me,token,e.id);toast('Registro excluído');closeModal();delete repCache[e.date.slice(0,7)];if(R.month)loadRel();refresh(true)}catch(x){toast('Erro: '+errMsg(x))} };
+    try{await run('deleteEntry',me,token,e.id);toast('Registro excluído');closeModal();delete repCache[e.date.slice(0,7)];if(R.month)loadRel();if(view==='producao')loadProd();refresh(true)}catch(x){toast('Erro: '+errMsg(x))} };
   $('#eOk').onclick=async()=>{
     const body={id:e.id,date:$('#eD').value,slot:readOther($('#eS'),$('#eSX')),ativ:$('#eA').value,plats:ep,tipo:readTipo($('#eT'),$('#eTX'),$('#eQ')),status:readOther($('#eSt'),$('#eStX')),pauta:$('#ePa').value.trim(),link:$('#eL').value.trim(),obs:$('#eO').value.trim()};
     if(!body.pauta){toast('Escreva a pauta');return}
@@ -1433,7 +1456,7 @@ function editModal(e){
     if(body.ativ==='Postagem'&&!ep.length){toast('Marque ao menos uma rede');return}
     if(body.ativ==='Postagem'&&ep.some(p=>pc(p).mode==='grade')&&!body.slot){toast('Escolha o horário da grade');return}
     $('#eOk').disabled=true;
-    try{await run('saveEntry',me,token,body);toast('Registro atualizado');closeModal();delete repCache[e.date.slice(0,7)];delete repCache[body.date.slice(0,7)];if(R.month)loadRel();refresh(true)}
+    try{await run('saveEntry',me,token,body);toast('Registro atualizado');closeModal();delete repCache[e.date.slice(0,7)];delete repCache[body.date.slice(0,7)];if(R.month)loadRel();if(view==='producao')loadProd();refresh(true)}
     catch(x){toast('Erro: '+errMsg(x));$('#eOk').disabled=false}
   };
 }
@@ -1461,8 +1484,74 @@ $('#rCsv').onclick=async()=>{
   catch(x){try{await navigator.clipboard.writeText(csv);toast('CSV copiado')}catch(y){toast('Não foi possível exportar')}}
 };
 
-const APP_VERSION='v2026.11.17-editar-grade';
-try{$('#appVer').textContent=APP_VERSION}catch(e){}
+/* ======================= PRODUÇÃO (o que cada um fez no dia) ======================= */
+let prodDate=null, prodOpen=null, prodBusy=false;
+async function openProd(){ if(!prodDate) prodDate=today();
+  // sempre buscar dados frescos do mês do dia e do mês seguinte
+  [prodDate.slice(0,7), addDays(lastDay(prodDate.slice(0,7)),1).slice(0,7)].forEach(m=>delete repCache[m]);
+  await loadProd(); }
+async function loadProd(){
+  if(prodBusy) return; prodBusy=true;
+  const m=prodDate.slice(0,7), nm=addDays(lastDay(m),1).slice(0,7);
+  if(!repCache[m]||!repCache[nm]){ $('#prStatus').innerHTML='<span class="pill">Carregando…</span>';
+    try{ await ensureMonths([m,nm]) }catch(e){ $('#prStatus').innerHTML='<span class="pill bad">Erro: '+esc(errMsg(e))+'</span>'; prodBusy=false; return } }
+  $('#prStatus').innerHTML=''; prodBusy=false; renderProd();
+}
+function dayLabel(d,ref){ const n=Math.round((new Date(d+'T12:00:00Z')-new Date(ref+'T12:00:00Z'))/864e5);
+  const base=`${DOWS[dow(d)].slice(0,3)} ${fmtD(d)}`;
+  return n===0?(ref===today()?'Hoje':'No dia')+' · '+fmtD(d):n===1?'Amanhã · '+fmtD(d):n===-1?'Ontem · '+fmtD(d):base; }
+function renderProd(){
+  if(!prodDate) return; const d=prodDate; $('#prDate').value=d;
+  const isT=d===today(); const tom=addDays(d,1);
+  $('#prTitle').textContent = isT?'Produção de hoje':`Produção de ${DOWS[dow(d)].toLowerCase()}, ${fmtD(d)}`;
+  const seen=new Set(); const all=[];
+  Object.values(repCache).forEach(list=>(list||[]).forEach(e=>{ if(!seen.has(e.id)&&(e.regAt||'').slice(0,10)===d){seen.add(e.id);all.push(e)} }));
+  const news=all.filter(e=>e.ativ==='Postagem'), other=all.filter(e=>e.ativ!=='Postagem');
+  const same=news.filter(e=>e.date===d), tomo=news.filter(e=>e.date===tom), later=news.filter(e=>e.date>tom), past=news.filter(e=>e.date<d);
+  const kc=(l,v,sub,cls)=>`<div class="kpi ${cls||''}"><div class="l">${l}</div><div class="v">${v}</div><div class="small muted">${sub||''}</div></div>`;
+  $('#prKpis').innerHTML=
+    `<div class="kpi hero"><div class="l">Notícias feitas ${isT?'hoje':'no dia'}</div><div class="v">${news.length}</div><div class="small muted">por ${new Set(news.map(e=>e.autor)).size} pessoa(s)</div></div>`+
+    kc(isT?'Entram hoje':'Entram no mesmo dia',same.length,'publicadas/agendadas para '+fmtD(d))+
+    kc('Para amanhã',tomo.length,fmtD(tom))+
+    kc('Para os próximos dias',later.length,later.length?[...new Set(later.map(e=>e.date))].sort().map(x=>`${DOWS[dow(x)].slice(0,3)} ${fmtD(x)}`).slice(0,3).join(', ')+(new Set(later.map(e=>e.date)).size>3?'…':''):'—')+
+    kc('Retroativas',past.length,'registradas depois de sair')+
+    kc('Outras atividades',other.length,'vídeos, captação, edição, extras');
+  // por funcionário
+  const names=[...new Set([...team().map(t=>t.name),...all.map(e=>e.autor)])];
+  const rows=names.map(n=>{const ns=news.filter(e=>e.autor===n);
+    const byDate={}; ns.forEach(e=>byDate[e.date]=(byDate[e.date]||0)+1);
+    return {n,ns,tot:ns.length,same:ns.filter(e=>e.date===d).length,tomo:ns.filter(e=>e.date===tom).length,
+      later:ns.filter(e=>e.date>tom).length,past:ns.filter(e=>e.date<d).length,byDate,oth:other.filter(e=>e.autor===n).length}})
+    .sort((a,b)=>b.tot-a.tot||b.oth-a.oth);
+  const mx=Math.max(1,...rows.map(r=>r.tot));
+  const C={same:'#2b2f36',tomo:'#4d6a00',later:'#2f5fd0',past:'#b9bec6'};
+  $('#prLegend').innerHTML=`<span><i style="background:${C.same}"></i>${isT?'Entram hoje':'Mesmo dia'}</span><span><i style="background:${C.tomo}"></i>Amanhã</span><span><i style="background:${C.later}"></i>Próximos dias</span><span><i style="background:${C.past}"></i>Retroativas</span>`;
+  $('#prTable').innerHTML=`<table class="simple pt"><tr><th>Funcionário</th><th>Notícias feitas</th><th></th><th>${isT?'Entram hoje':'Mesmo dia'}</th><th>Amanhã</th><th>Próximos dias</th><th>Retroativas</th><th>Outras atividades</th></tr>`+
+    rows.map(r=>{
+      const fut=Object.entries(r.byDate).filter(([x])=>x>tom).sort().map(([x,v])=>`<span class="pill" title="${DOWS[dow(x)]}">${DOWS[dow(x)].slice(0,3)} ${fmtD(x)}: <b>${v}</b></span>`).join(' ');
+      const bar=['same','tomo','later','past'].filter(k=>r[k]).map(k=>`<i style="width:${r[k]/mx*100}%;background:${C[k]}" title="${r[k]}"></i>`).join('');
+      return `<tr class="click ${prodOpen===r.n?'open':''}" data-pn="${esc(r.n)}" title="Clique para ver as notícias">
+        <td class="nw">${avatar(r.n)} <b>${esc(r.n)}</b></td><td><b class="big">${r.tot}</b></td>
+        <td style="min-width:160px"><span class="stk pbar">${bar}</span></td>
+        <td>${r.same||'<span class="muted">0</span>'}</td><td>${r.tomo||'<span class="muted">0</span>'}</td>
+        <td>${r.later?`<b>${r.later}</b> ${fut}`:'<span class="muted">0</span>'}</td><td>${r.past||'<span class="muted">0</span>'}</td><td>${r.oth||'<span class="muted">0</span>'}</td></tr>`+
+        (prodOpen===r.n?`<tr class="det"><td colspan="8">${(()=>{const items=[...r.ns,...other.filter(e=>e.autor===r.n)];if(!items.length)return '<p class="muted">Nada registrado neste dia.</p>';
+          const g={}; items.forEach(e=>{const k=e.ativ==='Postagem'?e.date:'~outras';(g[k]=g[k]||[]).push(e)});
+          return Object.keys(g).sort().map(k=>`<div class="pgroup"><div class="ph">${k==='~outras'?'🎥 Outras atividades':'📅 Entra '+dayLabel(k,d).replace(/^Hoje/,'hoje').replace(/^Amanhã/,'amanhã')} <span class="pill">${g[k].length}</span></div>${g[k].sort(bySlot).map(e=>entryRow(e,{showDate:true})).join('')}</div>`).join('')})()}</td></tr>`:'');
+    }).join('')+'</table>';
+  $('#prTable').querySelectorAll('[data-pn]').forEach(x=>x.onclick=()=>{prodOpen=prodOpen===x.dataset.pn?null:x.dataset.pn;renderProd()});
+  wireRows($('#prTable'));
+  $('#prTable').querySelectorAll('[data-ed]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const e=all.find(z=>z.id===b.dataset.ed);if(e)editModal(e)});
+  $('#prTable').querySelectorAll('[data-del]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const e=all.find(z=>z.id===b.dataset.del);if(e)editModal(e)});
+}
+$('#prDate').onchange=()=>{prodDate=$('#prDate').value||today();prodOpen=null;loadProd()};
+$('#prPrev').onclick=()=>{prodDate=addDays(prodDate,-1);prodOpen=null;loadProd()};
+$('#prNext').onclick=()=>{prodDate=addDays(prodDate,1);prodOpen=null;loadProd()};
+$('#prToday').onclick=()=>{prodDate=today();prodOpen=null;openProd()};
+$('#prReload').onclick=()=>openProd();
+
+const APP_VERSION='v2026.11.17-producao';
+try{$('#appVer').textContent=APP_VERSION;document.querySelector('.logo').title='Versão '+APP_VERSION}catch(e){}
 /* ======================= boot ======================= */
 gDate=today(); eDate=today();
 $('#hMonth').value=today().slice(0,7);
