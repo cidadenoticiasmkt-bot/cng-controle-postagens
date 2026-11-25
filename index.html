@@ -282,6 +282,29 @@ input[type=text],input[type=url],input[type=date],input[type=time],input[type=pa
 .pc-btn{align-self:flex-start;border:0;background:transparent;font-weight:700;color:var(--limeink);padding:0;font-size:13px} .pc-btn:hover{text-decoration:underline}
 .pc-list{border-top:1px solid var(--line);padding-top:6px}
 .idle{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 4px;font-size:13px} .idle .av{width:22px;height:22px;font-size:11px}
+
+.subtabs{display:inline-flex;gap:4px;background:#e9eae5;border-radius:14px;padding:4px;margin-bottom:16px}
+.subtabs button{border:0;background:transparent;border-radius:11px;padding:8px 16px;font-weight:700;color:var(--ink2)}
+.subtabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px #0000001a}
+.antool{padding:14px 16px}
+.pps{display:flex;gap:6px;flex-wrap:wrap}
+.pp{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 12px 4px 4px;font-weight:600;font-size:13px}
+.pp .av{width:24px;height:24px;font-size:11px} .pp em{font-style:normal;font-size:11px;color:var(--mute);font-weight:700}
+.pp.on{background:var(--ink);color:#fff;border-color:var(--ink)} .pp.on em{color:var(--lime)}
+.antitle{display:flex;align-items:center;gap:10px;font-size:20px;margin:20px 0 12px} .antitle small{font-family:Inter;font-weight:500;font-size:13px;color:var(--mute)}
+.agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+@media (max-width:1000px){.agrid{grid-template-columns:1fr}}
+.dn{display:flex;align-items:center;gap:16px;margin-top:8px}
+.dn-svg{width:140px;height:140px;flex:none}
+.dn-c{font-family:Archivo;font-weight:800;font-size:26px;fill:var(--ink)} .dn-s{font-size:10px;fill:var(--mute)}
+.dn-leg{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.dn-leg div{display:grid;grid-template-columns:10px 1fr auto 38px;gap:8px;align-items:center;font-size:13px}
+.dn-leg div.zero{opacity:.4}
+.dn-leg i{width:10px;height:10px;border-radius:3px} .dn-leg span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dn-leg b{font-family:Archivo} .dn-leg em{font-style:normal;color:var(--mute);font-size:12px;text-align:right}
+.vb.an .vc i{background:#2b2f36}
+table.at td{vertical-align:middle} table.at tr.sel td{background:#eef6d2} table.at tr.click:hover td{background:#f6f8ef}
+.tb{position:relative;min-width:90px;height:22px;display:flex;align-items:center} .tb i{position:absolute;left:0;top:3px;bottom:3px;background:#dbeba4;border-radius:5px} .tb b{position:relative;padding-left:6px;font-family:Archivo}
 </style>
 </head>
 <body>
@@ -462,12 +485,34 @@ input[type=text],input[type=url],input[type=date],input[type=time],input[type=pa
       <div class="dnav"><button id="prPrev" title="Dia anterior">‹</button><input type="date" id="prDate"><button id="prNext" title="Próximo dia">›</button></div>
       <button class="btn ghost sm" id="prToday">Hoje</button><button class="btn ghost sm" id="prReload" title="Buscar dados novos">↻ Atualizar</button>
     </div>
+    <div class="subtabs" id="prSubs"><button data-s="dia" class="on">📋 Resumo do dia</button><button data-s="ana">📊 Análise por participante</button></div>
+    <div id="prMain">
     <div class="phero" id="prHero"></div>
     <div class="psec"><h3>Quando as notícias entram no ar</h3><span class="small muted">o que foi lançado neste dia, separado pela data de publicação</span></div>
     <div class="tline" id="prTimeline"></div>
     <div class="psec"><h3>Por funcionário</h3><span class="small muted">clique em “Ver as notícias” para abrir a lista</span></div>
     <div class="pcards" id="prCards"></div>
     <div class="row" id="prIdle" style="margin-top:12px;gap:8px"></div>
+    </div>
+    <div id="prAna" class="hidden">
+      <div class="card antool">
+        <div class="row"><span class="small muted">Período</span><div class="seg" id="anPer"><button data-p="dia">Dia</button><button data-p="7">7 dias</button><button data-p="30">30 dias</button><button data-p="mes">Mês</button></div>
+          <span class="small" id="anRange"></span><span class="sp"></span><span id="anStatus"></span></div>
+        <div class="row" style="margin-top:10px"><span class="small muted">Participante</span><div class="pps" id="anPeople"></div></div>
+      </div>
+      <h3 class="antitle" id="anTitle"></h3>
+      <div class="kpis" id="anKpis"></div>
+      <div class="agrid">
+        <div class="card"><h3>Em quais redes</h3><div id="anNet"></div></div>
+        <div class="card"><h3>Quando entram no ar</h3><div id="anWhen"></div></div>
+        <div class="card"><h3>Categorias</h3><div id="anCat"></div></div>
+      </div>
+      <div class="pgrid">
+        <div class="card"><h3>Notícias lançadas por dia</h3><div id="anDays"></div></div>
+        <div class="card"><h3>Horário em que lança</h3><div id="anHours"></div></div>
+      </div>
+      <div class="card sec"><div class="row"><h3>Comparativo entre participantes</h3><span class="small muted">clique numa linha para ver só aquela pessoa</span></div><div class="scroll" id="anTable" style="margin-top:8px"></div></div>
+    </div>
   </section>
 
   <!-- EQUIPE -->
@@ -1558,7 +1603,7 @@ async function loadProd(){
   const m=prodDate.slice(0,7), nm=addDays(lastDay(m),1).slice(0,7);
   if(!repCache[m]||!repCache[nm]){ $('#prStatus').innerHTML='<span class="pill">Carregando…</span>';
     try{ await ensureMonths([m,nm]) }catch(e){ $('#prStatus').innerHTML='<span class="pill bad">Erro: '+esc(errMsg(e))+'</span>'; prodBusy=false; return } }
-  $('#prStatus').innerHTML=''; prodBusy=false; renderProd();
+  $('#prStatus').innerHTML=''; prodBusy=false; if(prodSub==='ana') loadAna(); else renderProd();
 }
 function dayLabel(d,ref){ const n=Math.round((new Date(d+'T12:00:00Z')-new Date(ref+'T12:00:00Z'))/864e5);
   return n===0?(ref===today()?'Hoje':'No dia'):n===1?'Amanhã':n===-1?'Ontem':DOWS[dow(d)]; }
@@ -1646,7 +1691,86 @@ $('#prNext').onclick=()=>{prodDate=addDays(prodDate,1);prodOpen=null;loadProd()}
 $('#prToday').onclick=()=>{prodDate=today();prodOpen=null;openProd()};
 $('#prReload').onclick=()=>openProd();
 
-const APP_VERSION='v2026.11.25-visual';
+/* ======================= PRODUÇÃO · ANÁLISE POR PARTICIPANTE ======================= */
+let prodSub='dia'; const ANA={per:'7',person:''};
+const CAT6=['#2b2f36','#6b8f00','#2f5fd0','#c13584','#0e9f9a','#b4b9c1'];
+function anaRange(){const e=prodDate||today();
+  if(ANA.per==='dia') return [e,e];
+  if(ANA.per==='mes'){const a=e.slice(0,7)+'-01';const b=lastDay(e.slice(0,7));return [a,b<today()?b:(e>today()?e:today())]}
+  return [addDays(e,-(+ANA.per)+1),e];}
+async function loadAna(){
+  const [a,b]=anaRange(); const ms=monthsBetween(a,b); ms.push(addDays(lastDay(b.slice(0,7)),1).slice(0,7));
+  if(ms.some(m=>!repCache[m])){ $('#anStatus').innerHTML='<span class="pill">Carregando…</span>';
+    try{await ensureMonths(ms)}catch(e){$('#anStatus').innerHTML='<span class="pill bad">Erro: '+esc(errMsg(e))+'</span>';return} }
+  $('#anStatus').innerHTML=''; renderAna();
+}
+function donut(items,center,sub){
+  const tot=items.reduce((x,i)=>x+i.v,0); const R=54,C=2*Math.PI*R; let off=0;
+  const segs=tot?items.filter(i=>i.v).map(i=>{const len=i.v/tot*C;const gap=items.filter(x=>x.v).length>1?2:0;const s=`<circle r="${R}" cx="70" cy="70" fill="none" stroke="${i.color}" stroke-width="18" stroke-dasharray="${Math.max(0,len-gap)} ${C}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)"><title>${esc(i.label)}: ${i.v} (${Math.round(i.v/tot*100)}%)</title></circle>`;off+=len;return s}).join(''):`<circle r="${R}" cx="70" cy="70" fill="none" stroke="#eef0f2" stroke-width="18"/>`;
+  return `<div class="dn"><svg viewBox="0 0 140 140" class="dn-svg">${segs}<text x="70" y="68" text-anchor="middle" class="dn-c">${center}</text><text x="70" y="86" text-anchor="middle" class="dn-s">${sub||''}</text></svg>
+    <div class="dn-leg">${items.map(i=>`<div class="${i.v?'':'zero'}"><i style="background:${i.color}"></i><span>${esc(i.label)}</span><b>${i.v}</b><em>${tot?Math.round(i.v/tot*100):0}%</em></div>`).join('')}</div></div>`;
+}
+function renderAna(){
+  const [a,b]=anaRange(); const days=daysIn(a,b);
+  document.querySelectorAll('#anPer button').forEach(x=>x.classList.toggle('on',x.dataset.p===ANA.per));
+  $('#anRange').textContent = a===b?`${DOWS[dow(a)]}, ${fmtD(a)}`:`${fmtD(a)} a ${fmtD(b)} · ${days.length} dias`;
+  const seen=new Set(), all=[];
+  Object.values(repCache).forEach(l=>(l||[]).forEach(e=>{const r=(e.regAt||'').slice(0,10);if(!seen.has(e.id)&&r>=a&&r<=b){seen.add(e.id);all.push(e)}}));
+  const names=[...new Set([...team().map(t=>t.name),...all.map(e=>e.autor)])];
+  // seletor de participante
+  $('#anPeople').innerHTML=`<button class="pp ${ANA.person===''?'on':''}" data-pp=""><span class="av" style="background:#0d0d0d">★</span>Equipe toda</button>`+
+    names.map(n=>`<button class="pp ${ANA.person===n?'on':''}" data-pp="${esc(n)}">${avatar(n)}${esc(n)} <em>${all.filter(e=>e.autor===n&&e.ativ==='Postagem').length}</em></button>`).join('');
+  $('#anPeople').querySelectorAll('[data-pp]').forEach(x=>x.onclick=()=>{ANA.person=x.dataset.pp;renderAna()});
+  const mine=ANA.person?all.filter(e=>e.autor===ANA.person):all;
+  const news=mine.filter(e=>e.ativ==='Postagem'), oth=mine.filter(e=>e.ativ!=='Postagem');
+  const nd=Math.max(1,days.filter(d=>d<=today()).length);
+  const reg=e=>(e.regAt||'').slice(0,10);
+  const same=news.filter(e=>e.date===reg(e)).length, ahead=news.filter(e=>e.date>reg(e)).length, retro=news.filter(e=>e.date<reg(e)).length;
+  const withLink=news.filter(e=>safeUrl(e.link)).length;
+  const who=ANA.person?esc(ANA.person):'A equipe';
+  $('#anTitle').innerHTML=ANA.person?`${avatar(ANA.person)} <span>${esc(ANA.person)}</span> <small>${esc((member(ANA.person)||{}).role||'')}</small>`:'<span>Equipe toda</span>';
+  const tile=(l,v,s)=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="small muted">${s||''}</div></div>`;
+  $('#anKpis').innerHTML=`<div class="kpi hero"><div class="l">${who} fez</div><div class="v">${news.length}</div><div class="small muted">notícia${news.length===1?'':'s'} no período</div></div>`+
+    tile('Média por dia',String(Math.round(news.length/nd*10)/10).replace('.',','),`em ${nd} dia${nd>1?'s':''}`)+
+    tile('Entram no mesmo dia',news.length?Math.round(same/news.length*100)+'%':'—',`${same} de ${news.length}`)+
+    tile('Feitas com antecedência',news.length?Math.round(ahead/news.length*100)+'%':'—',`${ahead} agendadas para outro dia`)+
+    tile('Com link',news.length?Math.round(withLink/news.length*100)+'%':'—',`${news.length-withLink} sem link`)+
+    tile('Outras atividades',oth.length,'vídeos, captação, edição, extras');
+  // pizzas
+  const pc={}; news.forEach(e=>(e.plats||[]).forEach(p=>pc[p]=(pc[p]||0)+1));
+  $('#anNet').innerHTML=donut(PLATS.map(p=>({label:p.id,v:pc[p.id]||0,color:p.c})),Object.values(pc).reduce((x,y)=>x+y,0),'publicações');
+  const tom=e=>addDays(reg(e),1);
+  const tw={same,tomo:news.filter(e=>e.date===tom(e)).length,later:news.filter(e=>e.date>tom(e)).length,retro};
+  $('#anWhen').innerHTML=donut([{label:'No mesmo dia',v:tw.same,color:PC.same},{label:'No dia seguinte',v:tw.tomo,color:PC.tomo},{label:'2+ dias depois',v:tw.later,color:PC.later},{label:'Retroativas',v:tw.retro,color:PC.past}],news.length,'notícias');
+  const cc={}; news.forEach(e=>{const c=catOf(e.tipo);cc[c]=(cc[c]||0)+1}); const ce=Object.entries(cc).sort((x,y)=>y[1]-x[1]);
+  const top=ce.slice(0,5), rest=ce.slice(5).reduce((x,y)=>x+y[1],0);
+  $('#anCat').innerHTML=donut([...top.map(([k,v],i)=>({label:k,v,color:CAT6[i]})),...(rest?[{label:'Outras',v:rest,color:CAT6[5]}]:[])],news.length,'notícias');
+  // barras por dia
+  const per=days.map(d=>({d,v:news.filter(e=>reg(e)===d).length})); const mx=Math.max(1,...per.map(x=>x.v));
+  $('#anDays').innerHTML=days.length===1?`<p class="muted small">Escolha 7 dias, 30 dias ou mês para ver a evolução.</p>`:
+    `<div class="vb an">${per.map(x=>`<div class="vc" data-tip="<b>${DOWS[dow(x.d)]}, ${fmtD(x.d)}</b><br>${x.v} notícia(s)"><span class="vv">${x.v||''}</span><span class="bw"><i style="height:${x.v/mx*100}%;${dow(x.d)===0||dow(x.d)===6?'background:#9aa1aa':''}"></i></span><span class="vl2">${days.length>14?(+x.d.slice(8)%3===1?x.d.slice(8):''):DOWS[dow(x.d)].slice(0,3)+' '+x.d.slice(8)}</span></div>`).join('')}</div><div class="small muted" style="margin-top:4px">Barras cinza = fim de semana</div>`;
+  // horário em que lança
+  const hc=Array(24).fill(0); news.forEach(e=>{const h=parseInt((e.regAt||'').slice(11,13),10);if(!isNaN(h))hc[h]++}); const hm=Math.max(1,...hc);
+  const peak=hc.indexOf(Math.max(...hc));
+  $('#anHours').innerHTML=`<div class="vb an">${hc.map((v,h)=>`<div class="vc" data-tip="${hh(h)}: <b>${v}</b> lançada(s)"><span class="vv">${v||''}</span><span class="bw"><i style="height:${v/hm*100}%"></i></span><span class="vl2">${h%3===0?h:''}</span></div>`).join('')}</div>`+(news.length?`<div class="small muted" style="margin-top:4px">Horário em que mais lança notícias: <b>${hh(peak)}</b></div>`:'');
+  // tabela comparativa
+  const rows=names.map(n=>{const ns=all.filter(e=>e.autor===n&&e.ativ==='Postagem'),os=all.filter(e=>e.autor===n&&e.ativ!=='Postagem');const p={};ns.forEach(e=>(e.plats||[]).forEach(x=>p[x]=(p[x]||0)+1));
+    return {n,t:ns.length,avg:ns.length/nd,same:ns.length?Math.round(ns.filter(e=>e.date===reg(e)).length/ns.length*100):null,ahead:ns.filter(e=>e.date>reg(e)).length,p,os:os.length,link:ns.length?Math.round(ns.filter(e=>safeUrl(e.link)).length/ns.length*100):null}}).sort((x,y)=>y.t-x.t);
+  const tmax=Math.max(1,...rows.map(r=>r.t));
+  $('#anTable').innerHTML=`<table class="simple at"><tr><th>Participante</th><th>Notícias</th><th>Média/dia</th><th>Mesmo dia</th><th>Antecipadas</th>${PLATS.map(p=>`<th>${platDot(p.id)} ${p.id}</th>`).join('')}<th>Com link</th><th>Outras ativ.</th></tr>`+
+    rows.map((r,i)=>`<tr class="click ${ANA.person===r.n?'sel':''}" data-pp="${esc(r.n)}"><td class="nw">${i===0&&r.t?'🏆 ':''}${avatar(r.n)} <b>${esc(r.n)}</b></td>
+      <td><div class="tb"><i style="width:${r.t/tmax*100}%"></i><b>${r.t}</b></div></td><td>${String(Math.round(r.avg*10)/10).replace('.',',')}</td>
+      <td>${r.same==null?'—':r.same+'%'}</td><td>${r.ahead}</td>${PLATS.map(p=>`<td>${r.p[p.id]||'<span class="muted">0</span>'}</td>`).join('')}
+      <td>${r.link==null?'—':`<span class="pill ${r.link>=80?'ok':r.link>=50?'warn':'bad'}">${r.link}%</span>`}</td><td>${r.os||'<span class="muted">0</span>'}</td></tr>`).join('')+'</table>';
+  $('#anTable').querySelectorAll('[data-pp]').forEach(x=>x.onclick=()=>{ANA.person=ANA.person===x.dataset.pp?'':x.dataset.pp;renderAna();$('#anTitle').scrollIntoView({behavior:'smooth',block:'start'})});
+  tipOn($('#prAna'));
+}
+function showProdSub(s){prodSub=s;document.querySelectorAll('#prSubs button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
+  $('#prMain').classList.toggle('hidden',s!=='dia'); $('#prAna').classList.toggle('hidden',s!=='ana'); if(s==='ana') loadAna(); else renderProd();}
+document.querySelectorAll('#prSubs button').forEach(b=>b.onclick=()=>showProdSub(b.dataset.s));
+document.querySelectorAll('#anPer button').forEach(b=>b.onclick=()=>{ANA.per=b.dataset.p;loadAna()});
+
+const APP_VERSION='v2026.11.25-analise';
 try{$('#appVer').textContent=APP_VERSION;document.querySelector('.logo').title='Versão '+APP_VERSION}catch(e){}
 /* ======================= boot ======================= */
 gDate=today(); eDate=today();
