@@ -220,6 +220,68 @@ th.srt{cursor:pointer;user-select:none} th.srt:hover{color:var(--ink)}
 table.simple{width:100%;border-collapse:collapse}
 table.simple td,table.simple th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}
 table.simple th{color:var(--mute);font-size:12px;text-transform:uppercase}
+
+/* ===== visual moderno (v2) ===== */
+:root{--r:16px;--bg:#f4f5f2}
+body{background:var(--bg)}
+.card,.kpi{border-radius:var(--r);border-color:#e9eae6;box-shadow:0 1px 2px #0000000a,0 6px 20px #0000000a}
+.kpi{padding:14px 16px}
+.kpi .l{letter-spacing:.06em;font-size:11px}
+.btn{border-radius:10px} .btn.sm{border-radius:9px}
+.chip{transition:background .15s,border-color .15s}
+nav button{border-radius:999px}
+h2{font-size:24px;letter-spacing:-.02em}
+.modal .card{border-radius:20px;box-shadow:0 24px 60px #0000003a}
+input[type=text],input[type=url],input[type=date],input[type=time],input[type=password],input[type=number],select,textarea{border-radius:10px}
+/* produção */
+.ptop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.dnav{display:flex;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.dnav button{border:0;background:transparent;font-size:20px;line-height:1;padding:6px 12px;color:var(--ink2)} .dnav button:hover{background:#f1f3ec}
+.dnav input{border:0!important;border-radius:0!important;width:auto;font-weight:600;background:transparent}
+.phero{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;align-items:center;background:linear-gradient(135deg,#0d0d0d 0%,#1b1f17 100%);color:#fff;border-radius:22px;padding:26px 28px;box-shadow:0 10px 30px #0000002a;position:relative;overflow:hidden}
+.phero::after{content:'';position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(#c6e43c33,transparent 70%)}
+@media (max-width:860px){.phero{grid-template-columns:1fr}}
+.ph-k{color:#b9bec6;font-size:14px;font-weight:600}
+.ph-n{font-family:Archivo;font-weight:800;font-size:56px;line-height:1;color:var(--lime);margin:6px 0 10px}
+.ph-n span{font-size:20px;color:#fff;font-weight:700}
+.ph-s{font-size:17px;line-height:1.5;color:#e9ecef} .ph-s b{color:#fff;font-weight:800}
+.ph-o{margin-top:10px;font-size:13px;color:#b9bec6}
+.seg2{display:flex;gap:3px;height:14px;border-radius:999px;overflow:hidden;background:#eef0f2}
+.seg2.empty{opacity:.4}
+.seg2 i{display:flex;align-items:center;justify-content:center;min-width:6px}
+.seg2 i span{font-size:11px;font-weight:800;color:#fff;font-style:normal}
+.seg2.big{height:38px;border-radius:12px;background:#ffffff14}
+.seg2.big i span{font-size:15px}
+.seg2.big i.k-same span,.seg2.big i.k-tomo span{color:#0d0d0d}
+.ph-leg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.ph-leg div{display:flex;flex-direction:column;gap:2px;font-size:12px;color:#b9bec6}
+.ph-leg div i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.ph-leg div b{font-family:Archivo;font-size:24px;color:#fff;line-height:1.1}
+.ph-leg div.zero{opacity:.4}
+.psec{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:26px 0 10px} .psec h3{font-size:17px}
+.tline{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px}
+.tl{flex:0 0 auto;min-width:150px;background:#fff;border:1px solid #e9eae6;border-radius:16px;padding:14px 16px;border-top:5px solid var(--ink);box-shadow:0 1px 2px #0000000a}
+.tl.tomo{border-top-color:#6b8f00} .tl.later{border-top-color:#2f5fd0} .tl.past{border-top-color:#b4b9c1}
+.tl-d{display:flex;justify-content:space-between;align-items:baseline;gap:10px} .tl-d b{font-size:14px} .tl-d span{font-size:12px;color:var(--mute)}
+.tl-n{font-family:Archivo;font-weight:800;font-size:36px;line-height:1.1;margin:4px 0 8px}
+.tl-w{display:flex;gap:6px;flex-wrap:wrap} .tl-w span{display:inline-flex;align-items:center;gap:3px} .tl-w .av{width:22px;height:22px;font-size:11px} .tl-w em{font-style:normal;font-size:12px;font-weight:700;color:var(--ink2)}
+.pcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;align-items:start}
+.pc{background:#fff;border:1px solid #e9eae6;border-radius:18px;padding:18px;box-shadow:0 1px 2px #0000000a,0 6px 20px #0000000a;display:flex;flex-direction:column;gap:12px}
+.pc.open{grid-column:1/-1}
+.pc-h{display:flex;align-items:center;gap:12px;position:relative}
+.pc-av{width:46px;height:46px;border-radius:14px;color:#fff;display:flex;align-items:center;justify-content:center;font-family:Archivo;font-weight:800;font-size:20px;flex:none}
+.pc-id{display:flex;flex-direction:column;min-width:0} .pc-id b{font-size:16px} .pc-id span{font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.pc-num{margin-left:auto;text-align:right;line-height:1} .pc-num b{display:block;font-family:Archivo;font-weight:800;font-size:40px} .pc-num span{font-size:12px;color:var(--mute)}
+.pc-top{vertical-align:2px;margin-left:4px;font-size:10.5px;font-weight:700;background:var(--lime);color:#0d0d0d;padding:3px 9px;border-radius:999px}
+.pc-s{font-size:14.5px;line-height:1.5;color:var(--ink2)} .pc-s b{color:var(--ink);font-weight:800}
+.pc-chips{display:flex;gap:6px;flex-wrap:wrap}
+.dc{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;background:#f4f5f2;border-radius:999px;padding:4px 10px}
+.dc i{width:8px;height:8px;border-radius:50%;background:#14171c} .dc.same i{background:#14171c} .dc.tomo i{background:#6b8f00} .dc.later i{background:#2f5fd0} .dc.past i{background:#b4b9c1}
+.dc b{font-family:Archivo;font-size:13px}
+.pc-o{font-size:13px;color:var(--ink2)}
+.pc-btn{align-self:flex-start;border:0;background:transparent;font-weight:700;color:var(--limeink);padding:0;font-size:13px} .pc-btn:hover{text-decoration:underline}
+.pc-list{border-top:1px solid var(--line);padding-top:6px}
+.idle{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 4px;font-size:13px} .idle .av{width:22px;height:22px;font-size:11px}
 </style>
 </head>
 <body>
@@ -394,17 +456,18 @@ table.simple th{color:var(--mute);font-size:12px;text-transform:uppercase}
 
   <!-- PRODUÇÃO -->
   <section id="v-producao" class="hidden">
-    <div class="row" style="margin-bottom:12px">
-      <div><h2 id="prTitle">Produção do dia</h2><div class="small muted">Quantas notícias cada um fez no dia (pela data do registro) e quando cada uma entra no ar.</div></div>
+    <div class="ptop">
+      <div><h2 id="prTitle">Produção do dia</h2><div class="small muted" id="prSub"></div></div>
       <span class="sp"></span><span id="prStatus"></span>
-      <button class="btn ghost sm" id="prPrev">◀</button><input type="date" id="prDate" style="width:auto"><button class="btn ghost sm" id="prNext">▶</button>
-      <button class="btn ghost sm" id="prToday">Hoje</button><button class="btn ghost sm" id="prReload" title="Buscar dados novos">↻</button>
+      <div class="dnav"><button id="prPrev" title="Dia anterior">‹</button><input type="date" id="prDate"><button id="prNext" title="Próximo dia">›</button></div>
+      <button class="btn ghost sm" id="prToday">Hoje</button><button class="btn ghost sm" id="prReload" title="Buscar dados novos">↻ Atualizar</button>
     </div>
-    <div class="kpis" id="prKpis"></div>
-    <div class="card">
-      <div class="row"><h3>Por funcionário</h3><span class="small muted">clique numa linha para ver as notícias</span><span class="sp"></span><div class="legend" id="prLegend" style="margin:0"></div></div>
-      <div class="scroll" id="prTable" style="margin-top:8px"></div>
-    </div>
+    <div class="phero" id="prHero"></div>
+    <div class="psec"><h3>Quando as notícias entram no ar</h3><span class="small muted">o que foi lançado neste dia, separado pela data de publicação</span></div>
+    <div class="tline" id="prTimeline"></div>
+    <div class="psec"><h3>Por funcionário</h3><span class="small muted">clique em “Ver as notícias” para abrir a lista</span></div>
+    <div class="pcards" id="prCards"></div>
+    <div class="row" id="prIdle" style="margin-top:12px;gap:8px"></div>
   </section>
 
   <!-- EQUIPE -->
@@ -1498,51 +1561,84 @@ async function loadProd(){
   $('#prStatus').innerHTML=''; prodBusy=false; renderProd();
 }
 function dayLabel(d,ref){ const n=Math.round((new Date(d+'T12:00:00Z')-new Date(ref+'T12:00:00Z'))/864e5);
-  const base=`${DOWS[dow(d)].slice(0,3)} ${fmtD(d)}`;
-  return n===0?(ref===today()?'Hoje':'No dia')+' · '+fmtD(d):n===1?'Amanhã · '+fmtD(d):n===-1?'Ontem · '+fmtD(d):base; }
+  return n===0?(ref===today()?'Hoje':'No dia'):n===1?'Amanhã':n===-1?'Ontem':DOWS[dow(d)]; }
+function dayWord(d,ref){ const n=Math.round((new Date(d+'T12:00:00Z')-new Date(ref+'T12:00:00Z'))/864e5);
+  if(n===0) return ref===today()?'hoje':'no mesmo dia'; if(n===1) return 'amanhã'; if(n<0) return 'retroativa'+(n<-1?'s':'');
+  const w=DOWS[dow(d)].toLowerCase(); return (dow(d)===0||dow(d)===6?'no ':'na ')+w+' ('+fmtD(d)+')'; }
+function joinPt(a){return a.length<2?a.join(''):a.slice(0,-1).join(', ')+' e '+a[a.length-1]}
+const PC={same:'#14171c',tomo:'#6b8f00',later:'#2f5fd0',past:'#b4b9c1'};
+const PCH={same:'#f1f3ec',tomo:'#c6e43c',later:'#5b8cff',past:'#6b7078'};   // cores no fundo escuro do resumo
+function prodSplit(list,d){const tom=addDays(d,1);return {same:list.filter(e=>e.date===d).length,tomo:list.filter(e=>e.date===tom).length,later:list.filter(e=>e.date>tom).length,past:list.filter(e=>e.date<d).length}}
+function sentence(list,d){
+  const by={}; list.forEach(e=>by[e.date]=(by[e.date]||0)+1);
+  const parts=Object.keys(by).filter(x=>x>=d).sort().map(x=>`<b>${by[x]}</b> ${x===d?(by[x]>1?'entram ':'entra ')+dayWord(x,d):dayWord(x,d)}`);
+  const past=Object.keys(by).filter(x=>x<d).reduce((a,x)=>a+by[x],0); if(past) parts.push(`<b>${past}</b> retroativa${past>1?'s':''}`);
+  return joinPt(parts);
+}
+function segBar(sp,total,big){
+  if(!total) return `<div class="seg2 empty"></div>`;
+  const P=big?PCH:PC;
+  return `<div class="seg2 ${big?'big':''}">${['same','tomo','later','past'].filter(k=>sp[k]).map(k=>`<i class="k-${k}" style="flex:${sp[k]};background:${P[k]}" title="${sp[k]}">${big||sp[k]/total>.12?`<span>${sp[k]}</span>`:''}</i>`).join('')}</div>`;
+}
 function renderProd(){
   if(!prodDate) return; const d=prodDate; $('#prDate').value=d;
-  const isT=d===today(); const tom=addDays(d,1);
+  const isT=d===today();
   $('#prTitle').textContent = isT?'Produção de hoje':`Produção de ${DOWS[dow(d)].toLowerCase()}, ${fmtD(d)}`;
-  const seen=new Set(); const all=[];
+  $('#prSub').textContent = isT?`${DOWS[dow(d)]}, ${fmtD(d)} · contagem pelo momento em que a notícia foi lançada no sistema`:'contagem pelo momento em que a notícia foi lançada no sistema';
+  const seen=new Set(), all=[];
   Object.values(repCache).forEach(list=>(list||[]).forEach(e=>{ if(!seen.has(e.id)&&(e.regAt||'').slice(0,10)===d){seen.add(e.id);all.push(e)} }));
   const news=all.filter(e=>e.ativ==='Postagem'), other=all.filter(e=>e.ativ!=='Postagem');
-  const same=news.filter(e=>e.date===d), tomo=news.filter(e=>e.date===tom), later=news.filter(e=>e.date>tom), past=news.filter(e=>e.date<d);
-  const kc=(l,v,sub,cls)=>`<div class="kpi ${cls||''}"><div class="l">${l}</div><div class="v">${v}</div><div class="small muted">${sub||''}</div></div>`;
-  $('#prKpis').innerHTML=
-    `<div class="kpi hero"><div class="l">Notícias feitas ${isT?'hoje':'no dia'}</div><div class="v">${news.length}</div><div class="small muted">por ${new Set(news.map(e=>e.autor)).size} pessoa(s)</div></div>`+
-    kc(isT?'Entram hoje':'Entram no mesmo dia',same.length,'publicadas/agendadas para '+fmtD(d))+
-    kc('Para amanhã',tomo.length,fmtD(tom))+
-    kc('Para os próximos dias',later.length,later.length?[...new Set(later.map(e=>e.date))].sort().map(x=>`${DOWS[dow(x)].slice(0,3)} ${fmtD(x)}`).slice(0,3).join(', ')+(new Set(later.map(e=>e.date)).size>3?'…':''):'—')+
-    kc('Retroativas',past.length,'registradas depois de sair')+
-    kc('Outras atividades',other.length,'vídeos, captação, edição, extras');
-  // por funcionário
+  const sp=prodSplit(news,d);
+
+  // 1. resumo em frase
+  $('#prHero').innerHTML = news.length?`
+    <div class="ph-l">
+      <div class="ph-k">${isT?'Hoje a equipe fez':'Neste dia a equipe fez'}</div>
+      <div class="ph-n">${news.length} <span>notícia${news.length>1?'s':''}</span></div>
+      <div class="ph-s">${sentence(news,d)}.</div>
+      ${other.length?`<div class="ph-o">+ ${other.length} outra${other.length>1?'s':''} atividade${other.length>1?'s':''} (vídeos, captação, edição, extras)</div>`:''}
+    </div>
+    <div class="ph-r">
+      ${segBar(sp,news.length,true)}
+      <div class="ph-leg">
+        ${[['same',isT?'Entram hoje':'Mesmo dia'],['tomo','Amanhã'],['later','Próximos dias'],['past','Retroativas']].map(([k,l])=>`<div class="${sp[k]?'':'zero'}"><i style="background:${PCH[k]}"></i><b>${sp[k]}</b><span>${l}</span></div>`).join('')}
+      </div>
+    </div>`
+    :`<div class="ph-l"><div class="ph-k">${isT?'Hoje':'Neste dia'}</div><div class="ph-n">0 <span>notícias</span></div><div class="ph-s">Ninguém lançou notícias ${isT?'ainda hoje':'neste dia'}.</div></div>`;
+
+  // 2. linha do tempo: quando entram no ar
+  const byDate={}; news.forEach(e=>{(byDate[e.date]=byDate[e.date]||[]).push(e)});
+  const dates=Object.keys(byDate).sort();
+  $('#prTimeline').innerHTML = dates.length? dates.map(x=>{const l=byDate[x]; const who={}; l.forEach(e=>who[e.autor]=(who[e.autor]||0)+1);
+    const k=x===d?'same':x===addDays(d,1)?'tomo':x>d?'later':'past';
+    return `<div class="tl ${k}"><div class="tl-d"><b>${dayLabel(x,d)}</b><span>${fmtD(x)}</span></div><div class="tl-n">${l.length}</div>
+      <div class="tl-w">${Object.entries(who).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<span title="${esc(n)}: ${c}">${avatar(n)}<em>${c}</em></span>`).join('')}</div></div>`}).join('')
+    : '<p class="muted small" style="margin:6px 0">Sem notícias lançadas neste dia.</p>';
+
+  // 3. cartões por funcionário
   const names=[...new Set([...team().map(t=>t.name),...all.map(e=>e.autor)])];
-  const rows=names.map(n=>{const ns=news.filter(e=>e.autor===n);
-    const byDate={}; ns.forEach(e=>byDate[e.date]=(byDate[e.date]||0)+1);
-    return {n,ns,tot:ns.length,same:ns.filter(e=>e.date===d).length,tomo:ns.filter(e=>e.date===tom).length,
-      later:ns.filter(e=>e.date>tom).length,past:ns.filter(e=>e.date<d).length,byDate,oth:other.filter(e=>e.autor===n).length}})
-    .sort((a,b)=>b.tot-a.tot||b.oth-a.oth);
-  const mx=Math.max(1,...rows.map(r=>r.tot));
-  const C={same:'#2b2f36',tomo:'#4d6a00',later:'#2f5fd0',past:'#b9bec6'};
-  $('#prLegend').innerHTML=`<span><i style="background:${C.same}"></i>${isT?'Entram hoje':'Mesmo dia'}</span><span><i style="background:${C.tomo}"></i>Amanhã</span><span><i style="background:${C.later}"></i>Próximos dias</span><span><i style="background:${C.past}"></i>Retroativas</span>`;
-  $('#prTable').innerHTML=`<table class="simple pt"><tr><th>Funcionário</th><th>Notícias feitas</th><th></th><th>${isT?'Entram hoje':'Mesmo dia'}</th><th>Amanhã</th><th>Próximos dias</th><th>Retroativas</th><th>Outras atividades</th></tr>`+
-    rows.map(r=>{
-      const fut=Object.entries(r.byDate).filter(([x])=>x>tom).sort().map(([x,v])=>`<span class="pill" title="${DOWS[dow(x)]}">${DOWS[dow(x)].slice(0,3)} ${fmtD(x)}: <b>${v}</b></span>`).join(' ');
-      const bar=['same','tomo','later','past'].filter(k=>r[k]).map(k=>`<i style="width:${r[k]/mx*100}%;background:${C[k]}" title="${r[k]}"></i>`).join('');
-      return `<tr class="click ${prodOpen===r.n?'open':''}" data-pn="${esc(r.n)}" title="Clique para ver as notícias">
-        <td class="nw">${avatar(r.n)} <b>${esc(r.n)}</b></td><td><b class="big">${r.tot}</b></td>
-        <td style="min-width:160px"><span class="stk pbar">${bar}</span></td>
-        <td>${r.same||'<span class="muted">0</span>'}</td><td>${r.tomo||'<span class="muted">0</span>'}</td>
-        <td>${r.later?`<b>${r.later}</b> ${fut}`:'<span class="muted">0</span>'}</td><td>${r.past||'<span class="muted">0</span>'}</td><td>${r.oth||'<span class="muted">0</span>'}</td></tr>`+
-        (prodOpen===r.n?`<tr class="det"><td colspan="8">${(()=>{const items=[...r.ns,...other.filter(e=>e.autor===r.n)];if(!items.length)return '<p class="muted">Nada registrado neste dia.</p>';
-          const g={}; items.forEach(e=>{const k=e.ativ==='Postagem'?e.date:'~outras';(g[k]=g[k]||[]).push(e)});
-          return Object.keys(g).sort().map(k=>`<div class="pgroup"><div class="ph">${k==='~outras'?'🎥 Outras atividades':'📅 Entra '+dayLabel(k,d).replace(/^Hoje/,'hoje').replace(/^Amanhã/,'amanhã')} <span class="pill">${g[k].length}</span></div>${g[k].sort(bySlot).map(e=>entryRow(e,{showDate:true})).join('')}</div>`).join('')})()}</td></tr>`:'');
-    }).join('')+'</table>';
-  $('#prTable').querySelectorAll('[data-pn]').forEach(x=>x.onclick=()=>{prodOpen=prodOpen===x.dataset.pn?null:x.dataset.pn;renderProd()});
-  wireRows($('#prTable'));
-  $('#prTable').querySelectorAll('[data-ed]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const e=all.find(z=>z.id===b.dataset.ed);if(e)editModal(e)});
-  $('#prTable').querySelectorAll('[data-del]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const e=all.find(z=>z.id===b.dataset.del);if(e)editModal(e)});
+  const rows=names.map(n=>{const ns=news.filter(e=>e.autor===n), os=other.filter(e=>e.autor===n);return {n,ns,os,sp:prodSplit(ns,d),role:(member(n)||{}).role||''}}).sort((a,b)=>b.ns.length-a.ns.length||b.os.length-a.os.length);
+  const active=rows.filter(r=>r.ns.length||r.os.length), idle=rows.filter(r=>!r.ns.length&&!r.os.length);
+  $('#prCards').innerHTML = active.map((r,i)=>{
+    const open=prodOpen===r.n;
+    return `<div class="pc ${open?'open':''}">
+      <div class="pc-h">
+        <span class="pc-av" style="background:${colorOf(r.n)}">${esc(r.n.slice(0,1))}</span>
+        <div class="pc-id"><b>${esc(r.n)} ${i===0&&r.ns.length&&active.length>1?'<span class="pc-top">🏆 mais notícias</span>':''}</b><span>${esc(r.role)}</span></div>
+        <div class="pc-num"><b>${r.ns.length}</b><span>notícia${r.ns.length===1?'':'s'}</span></div>
+      </div>
+      ${r.ns.length?`<div class="pc-s">${sentence(r.ns,d)}</div>${segBar(r.sp,r.ns.length,false)}
+        <div class="pc-chips">${Object.entries(r.ns.reduce((a,e)=>(a[e.date]=(a[e.date]||0)+1,a),{})).sort().map(([x,c])=>{const k=x===d?'same':x===addDays(d,1)?'tomo':x>d?'later':'past';return `<span class="dc ${k}"><i></i>${dayLabel(x,d)} ${x!==d&&x!==addDays(d,1)?fmtD(x):''}<b>${c}</b></span>`}).join('')}</div>`
+        :'<div class="pc-s muted">Nenhuma notícia; só outras atividades.</div>'}
+      ${r.os.length?`<div class="pc-o">🎥 ${r.os.length} outra${r.os.length>1?'s':''} atividade${r.os.length>1?'s':''}</div>`:''}
+      <button class="pc-btn" data-pn="${esc(r.n)}">${open?'▲ Esconder notícias':'▼ Ver as notícias'}</button>
+      ${open?`<div class="pc-list">${(()=>{const items=[...r.ns,...r.os];const g={};items.forEach(e=>{const k=e.ativ==='Postagem'?e.date:'~';(g[k]=g[k]||[]).push(e)});
+        return Object.keys(g).sort().map(k=>`<div class="pgroup"><div class="ph">${k==='~'?'🎥 Outras atividades':'📅 Entra '+(dayLabel(k,d)==='Hoje'?'hoje':dayLabel(k,d).toLowerCase())+' · '+fmtD(k)} <span class="pill">${g[k].length}</span></div>${g[k].sort(bySlot).map(e=>entryRow(e,{showDate:true})).join('')}</div>`).join('')})()}</div>`:''}
+    </div>`}).join('') || '<div class="card muted">Nenhum registro neste dia.</div>';
+  $('#prIdle').innerHTML = idle.length?`<span class="muted small">Sem registros ${isT?'hoje':'neste dia'}:</span> ${idle.map(r=>`<span class="idle">${avatar(r.n)} ${esc(r.n)}</span>`).join('')}`:'';
+  $('#prCards').querySelectorAll('[data-pn]').forEach(x=>x.onclick=()=>{prodOpen=prodOpen===x.dataset.pn?null:x.dataset.pn;renderProd()});
+  wireRows($('#prCards'));
+  $('#prCards').querySelectorAll('[data-ed],[data-del]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const e=all.find(z=>z.id===(b.dataset.ed||b.dataset.del));if(e)editModal(e)});
 }
 $('#prDate').onchange=()=>{prodDate=$('#prDate').value||today();prodOpen=null;loadProd()};
 $('#prPrev').onclick=()=>{prodDate=addDays(prodDate,-1);prodOpen=null;loadProd()};
@@ -1550,7 +1646,7 @@ $('#prNext').onclick=()=>{prodDate=addDays(prodDate,1);prodOpen=null;loadProd()}
 $('#prToday').onclick=()=>{prodDate=today();prodOpen=null;openProd()};
 $('#prReload').onclick=()=>openProd();
 
-const APP_VERSION='v2026.11.17-producao';
+const APP_VERSION='v2026.11.25-visual';
 try{$('#appVer').textContent=APP_VERSION;document.querySelector('.logo').title='Versão '+APP_VERSION}catch(e){}
 /* ======================= boot ======================= */
 gDate=today(); eDate=today();
