@@ -9,6 +9,9 @@ const SENHA_GESTOR = 'troque-esta-senha';
 const ABA_REG = 'Registros';
 const ABA_CFG = 'Config';
 const ABA_PIN = 'PINs';
+const ABA_ACT = 'Acoes';
+const ACOLS = ['ID','Título','Descrição','Responsável','Prazo','Status','Origem','Criado em','Criado por','Atualizado em'];
+const ASTATUS = ['A fazer','Em andamento','Concluído'];
 const COLS = ['ID','Data','Dia','Horário','Atividade','Redes','Tipo','Pauta','Responsável','Link','Status','Observações','Registrado em','Editado por','Criado (ms)'];
 const DIAS = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const ATIVS = ['Postagem','Vídeo (matéria)','Captação de vídeo','Edição de vídeo','Trabalho extra','Outro'];
@@ -55,7 +58,7 @@ function doPost(e) {
   let out;
   try {
     const req = JSON.parse(e.postData.contents);
-    const fns = {getState: getState, login: login, saveEntry: saveEntry, deleteEntry: deleteEntry, saveConfig: saveConfig, resetPin: resetPin};
+    const fns = {getState: getState, login: login, saveEntry: saveEntry, deleteEntry: deleteEntry, saveConfig: saveConfig, resetPin: resetPin, getActions: getActions, saveAction: saveAction, deleteAction: deleteAction};
     if (!fns[req.fn]) throw new Error('Função inválida.');
     out = {ok: true, result: fns[req.fn].apply(null, req.args || [])};
   } catch (err) {
@@ -329,6 +332,72 @@ function resetPin(name, token, target) {
   try {
     const p = readPins_()[target];
     if (p) ss_().getSheetByName(ABA_PIN).deleteRow(p.row);
+    return {ok: true};
+  } finally { lock.releaseLock(); }
+}
+
+
+/* ---------------- plano de ação ---------------- */
+function actSheet_() {
+  const ss = ss_();
+  let sh = ss.getSheetByName(ABA_ACT);
+  if (!sh) {
+    sh = ss.insertSheet(ABA_ACT);
+    sh.getRange(1, 1, 1, ACOLS.length).setValues([ACOLS]).setFontWeight('bold').setBackground('#14171c').setFontColor('#ffffff');
+    sh.setFrozenRows(1);
+    sh.getRange(1, 1, sh.getMaxRows(), ACOLS.length).setNumberFormat('@');
+    sh.hideColumns(1);
+  }
+  return sh;
+}
+function actRows_() {
+  const sh = actSheet_(); const n = sh.getLastRow();
+  if (n < 2) return [];
+  return sh.getRange(2, 1, n - 1, ACOLS.length).getValues().map(function (r, i) {
+    return {row: i + 2, id: String(r[0]), titulo: unq_(r[1]), desc: unq_(r[2]), resp: String(r[3] || ''), prazo: toIso_(cellText_(r[4], 'date')),
+            status: String(r[5] || 'A fazer'), origem: unq_(r[6]), criadoEm: cellText_(r[7]), criadoPor: String(r[8] || ''), atualizado: cellText_(r[9])};
+  }).filter(function (a) { return a.id; });
+}
+function getActions(name, token) {
+  must_(name, token);
+  return actRows_().map(function (a) { delete a.row; return a; });
+}
+function saveAction(name, token, a) {
+  const u = must_(name, token);
+  a = a || {};
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    const sh = actSheet_();
+    const status = ASTATUS.indexOf(a.status) >= 0 ? a.status : 'A fazer';
+    const safe = function (v, m) { v = clean_(v, m); return /^[=+\-@]/.test(v) ? "'" + v : v; };
+    if (a.id) {
+      const cur = actRows_().filter(function (x) { return x.id === String(a.id); })[0];
+      if (!cur) throw new Error('Ação não encontrada.');
+      if (!u.admin) {
+        if (cur.resp !== u.name) throw new Error('Só o gestor ou o responsável altera esta ação.');
+        sh.getRange(cur.row, 6, 1, 1).setValue(status);
+        sh.getRange(cur.row, 10, 1, 1).setValue(u.name + ' ' + nowStr_());
+        return {ok: true, id: cur.id};
+      }
+      const row = [cur.id, safe(a.titulo, 120), safe(a.desc, 600), clean_(a.resp, 40), toBr_(clean_(a.prazo, 10)), status, safe(a.origem, 200), cur.criadoEm, cur.criadoPor, u.name + ' ' + nowStr_()];
+      const rg = sh.getRange(cur.row, 1, 1, ACOLS.length); rg.setNumberFormat('@'); rg.setValues([row]);
+      return {ok: true, id: cur.id};
+    }
+    if (!u.admin) throw new Error('Só o gestor cria ações.');
+    if (!clean_(a.titulo, 120)) throw new Error('Escreva o título da ação.');
+    const id = Utilities.getUuid();
+    const row = [id, safe(a.titulo, 120), safe(a.desc, 600), clean_(a.resp, 40), toBr_(clean_(a.prazo, 10)), status, safe(a.origem, 200), nowStr_(), u.name, ''];
+    const r = sh.getLastRow() + 1; const rg = sh.getRange(r, 1, 1, ACOLS.length); rg.setNumberFormat('@'); rg.setValues([row]);
+    return {ok: true, id: id};
+  } finally { lock.releaseLock(); }
+}
+function deleteAction(name, token, id) {
+  const u = must_(name, token);
+  if (!u.admin) throw new Error('Só o gestor exclui ações.');
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    const cur = actRows_().filter(function (x) { return x.id === String(id); })[0];
+    if (cur) actSheet_().deleteRow(cur.row);
     return {ok: true};
   } finally { lock.releaseLock(); }
 }
