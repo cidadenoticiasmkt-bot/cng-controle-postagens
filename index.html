@@ -350,6 +350,15 @@ table.at td{vertical-align:middle} table.at tr.sel td{background:#eef6d2} table.
 .ac-t{font-weight:700;font-size:14px} .ac-d{font-size:12.5px;color:var(--ink2);margin-top:4px;white-space:pre-wrap}
 .ac-f{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:12px} .ac-r{display:inline-flex;align-items:center;gap:4px} .ac-r .av{width:20px;height:20px;font-size:10px} .ac-p.bad{color:var(--bad);font-weight:700}
 .ac-b{display:flex;gap:6px;margin-top:10px} .ac-b button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:3px 9px;font-size:12px;font-weight:700} .ac-b button.go{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* formulário: campos alinhados e toque no celular */
+div.f{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--ink2)}
+.fpair{flex:1 1 130px;min-width:0}
+.f .hint{font-weight:500;font-size:11.5px;color:var(--mute)}
+input[type=date],input[type=time],input[type=text],input[type=url],input[type=number],input[type=password],select{height:42px;box-sizing:border-box}
+input[type=date],input[type=time]{appearance:none;-webkit-appearance:none;min-height:42px;line-height:normal}
+.chip,.btn,nav button,.seg button,.subtabs button,.pp,.kpi.click{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.chip *{pointer-events:none}
 </style>
 </head>
 <body>
@@ -467,15 +476,15 @@ table.at td{vertical-align:middle} table.at tr.sel td{background:#eef6d2} table.
         <p class="muted small" style="margin:4px 0 14px">Um registro pode valer para várias redes de uma vez.</p>
         <form id="form" class="tm-card">
           <div class="row">
-            <label class="f" style="flex:1">Data<input type="date" id="fDate" required></label>
-            <label class="f" style="flex:1">Horário da grade <span class="muted" style="font-weight:500">(obrigatório p/ Instagram)</span><select id="fSlot"></select><input type="time" id="fSlotX" class="hidden ox" title="Digite o horário"></label>
+            <label class="f fpair">Data<input type="date" id="fDate" required><span class="hint">Dia em que entra no ar</span></label>
+            <label class="f fpair">Horário da grade<select id="fSlot"></select><input type="time" id="fSlotX" class="hidden ox" title="Digite o horário"><span class="hint">Obrigatório no Instagram</span></label>
           </div>
-          <label class="f">Atividade
+          <div class="f" role="group" aria-label="Atividade">Atividade
             <div class="chips" id="fAtiv"></div>
-          </label>
-          <label class="f" id="platWrap">Onde foi postado
+          </div>
+          <div class="f" id="platWrap" role="group" aria-label="Onde foi postado">Onde foi postado
             <div class="chips" id="fPlat"></div>
-          </label>
+          </div>
           <div class="row">
             <label class="f" style="flex:1">Tipo / categoria<select id="fTipo"></select><input type="text" id="fTipoX" class="hidden ox" maxlength="40" placeholder="Digite a categoria"><select id="fQuadro" class="hidden ox"></select></label>
             <label class="f" style="flex:1">Status<select id="fStatus"></select><input type="text" id="fStatusX" class="hidden ox" maxlength="30" placeholder="Ex.: Em produção, Aguardando aprovação"></label>
@@ -1606,7 +1615,7 @@ function editModal(e){
       <div class="row"><label class="f" style="flex:1">Atividade<select id="eA" ${dis}>${ATIVS.map(x=>`<option ${x===e.ativ?'selected':''}>${x}</option>`).join('')}</select></label>
         <label class="f" style="flex:1">Categoria<select id="eT" ${dis}>${tipoOptions()}</select><input type="text" id="eTX" class="hidden ox" maxlength="40" placeholder="Digite a categoria" ${dis}><select id="eQ" class="hidden ox" ${dis}></select></label>
         <label class="f" style="flex:1">Status<select id="eSt" ${dis}>${statusOptions()}</select><input type="text" id="eStX" class="hidden ox" maxlength="30" placeholder="Ex.: Em produção" ${dis}></label></div>
-      <label class="f">Redes<div class="chips" id="eP"></div></label>
+      <div class="f" role="group" aria-label="Redes">Redes<div class="chips" id="eP"></div></div>
       <label class="f">Pauta<input type="text" id="ePa" maxlength="200" value="${esc(e.pauta)}" ${dis}></label>
       <label class="f">Link<input type="url" id="eL" value="${esc(e.link||'')}" placeholder="https://" ${dis}></label>
       <label class="f">Observações<textarea id="eO" maxlength="500" ${dis}>${esc(e.obs||'')}</textarea></label>
@@ -1947,7 +1956,7 @@ $('#dsNext').onclick=()=>{const [,b]=dsRange();DS.ref=DS.per==='mes'?addDays(las
 $('#dsToday').onclick=()=>{DS.ref=today();subscribeMonth(DS.ref.slice(0,7));renderDesemp()};
 $('#dsNew').onclick=()=>actionModal();
 
-const APP_VERSION='v2026.11.26-desempenho';
+const APP_VERSION='v2026.11.27-form-mobile';
 try{$('#appVer').textContent=APP_VERSION;document.querySelector('.logo').title='Versão '+APP_VERSION}catch(e){}
 /* ======================= boot ======================= */
 gDate=today(); eDate=today();
