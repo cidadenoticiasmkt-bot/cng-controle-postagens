@@ -393,6 +393,25 @@ input[type=date],input[type=time]{appearance:none;-webkit-appearance:none;min-he
 .grp-s button:hover{background:#f3f5ee}
 .grp-s button.on{background:linear-gradient(135deg,#0d0d0d,#2a3a0e);color:#fff;box-shadow:0 2px 8px #0000002a}
 @media (max-width:760px){.grp-t{display:none}.grpbar{padding:6px;border-radius:14px}}
+
+/* redes (métricas) */
+.mhero{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:center;border-radius:24px;padding:28px 30px;color:#fff;margin-bottom:14px;
+  background:radial-gradient(120% 140% at 100% 0%,#8a2d6a 0%,#3a1430 40%,#0d0d0d 78%);box-shadow:0 14px 40px #0000002e}
+@media (max-width:860px){.mhero{grid-template-columns:1fr}}
+.mhero .small.muted{color:#c9bfc6!important;margin-top:8px} .mhero a{color:#f0b6dc}
+.mhero .dh-n{background:linear-gradient(90deg,#ffd1ec,#ff7ac6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.mh-g{display:grid;grid-template-columns:1fr 1fr;gap:10px} .mh-g div{background:#ffffff14;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column}
+.mh-g b{font-family:Archivo;font-size:26px} .mh-g span{font-size:12px;color:#d9cfd6}
+.tp{display:flex;flex-direction:column}
+.tp-r{display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:center;padding:10px 6px;border-bottom:1px solid var(--line);color:inherit;text-decoration:none;border-radius:10px}
+.tp-r:hover{background:#faf5f9}
+.tp-i{width:26px;height:26px;border-radius:8px;background:#f3e4ee;color:#8a2d6a;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px}
+.tp-r:first-child .tp-i{background:linear-gradient(135deg,#ff7ac6,#8a2d6a);color:#fff}
+.tp-b{display:flex;flex-direction:column;min-width:0} .tp-b b{font-size:13.5px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden} .tp-b span{font-size:12px;color:var(--mute);margin-top:2px}
+.tp-v{text-align:right;display:flex;flex-direction:column} .tp-v b{font-family:Archivo;font-size:18px} .tp-v span{font-size:11px;color:var(--mute)} .tp-v em{font-style:normal;font-size:11px;color:var(--ink2)}
+.mt-h{height:150px} .mt-h .vv{height:0} .mt-best{margin-top:8px;font-size:13px}
+.mt-empty ol{padding-left:18px} .mt-empty li{margin:6px 0}
+.sw{display:flex;gap:10px;align-items:flex-start;margin-top:8px;font-size:13.5px;cursor:pointer} .sw input{margin-top:3px;width:18px;height:18px;accent-color:#6b8f00} .sw small{color:var(--mute)}
 </style>
 </head>
 <body>
@@ -570,6 +589,13 @@ input[type=date],input[type=time]{appearance:none;-webkit-appearance:none;min-he
     <div class="hcards" id="homeCards"></div>
   </section>
 
+  <!-- REDES (métricas) -->
+  <section id="v-metricas" class="hidden">
+    <div class="ptop"><div><h2>Desempenho nas redes</h2><div class="small muted">dados reais do Instagram @cng.noticiasgoias (Windsor.ai)</div></div><span class="sp"></span>
+      <div class="seg" id="mtPer"><button data-p="7">7 dias</button><button data-p="30">30 dias</button><button data-p="60">60 dias</button></div></div>
+    <div id="mtBody"></div>
+  </section>
+
   <!-- DESEMPENHO -->
   <section id="v-desempenho" class="hidden">
     <div class="ptop">
@@ -692,6 +718,7 @@ input[type=date],input[type=time]{appearance:none;-webkit-appearance:none;min-he
         </div>
       </div>
     </div>
+    <div class="card sec"><h3>Automações e métricas</h3><p class="small muted" style="margin:2px 0 10px">Alertas por e-mail, relatório semanal e métricas reais do Instagram. Clique em <b>Salvar ajustes</b> depois de mudar as opções.</p><div id="sAuto"></div></div>
   </section>
 </main>
 
@@ -880,15 +907,15 @@ function enterApp(){
   $('#navAjustes').classList.toggle('hidden',!isAdmin);
   resetForm();
   const h=(location.hash||'').slice(1);
-  showView(['inicio','desempenho','painel','relatorios','producao','registrar','grade','equipe','historico','ajustes'].includes(h)&&(h!=='ajustes'||isAdmin)?h:'inicio');
+  showView(['inicio','desempenho','metricas','painel','relatorios','producao','registrar','grade','equipe','historico','ajustes'].includes(h)&&(h!=='ajustes'||isAdmin)?h:'inicio');
 }
 
 /* ======================= navegação ======================= */
 /* ---- Produção como grupo: sub-abas só aparecem dentro dela ---- */
-const PROD_GROUP=['producao','desempenho','painel','relatorios','equipe'];
+const PROD_GROUP=['producao','desempenho','metricas','painel','relatorios','equipe'];
 const GRP_TABS=[
   {k:'p-dia',ic:'📋',t:'Resumo do dia'},{k:'p-ana',ic:'📊',t:'Análise por participante'},
-  {k:'desempenho',ic:'🎯',t:'Desempenho'},{k:'painel',ic:'📈',t:'Painel'},{k:'relatorios',ic:'🧾',t:'Relatórios'},{k:'equipe',ic:'👥',t:'Equipe'}];
+  {k:'desempenho',ic:'🎯',t:'Desempenho'},{k:'metricas',ic:'📣',t:'Redes (alcance)'},{k:'painel',ic:'📈',t:'Painel'},{k:'relatorios',ic:'🧾',t:'Relatórios'},{k:'equipe',ic:'👥',t:'Equipe'}];
 function renderGrpTabs(){
   const el=$('#grpTabs'); if(!el) return;
   const on=PROD_GROUP.includes(view); el.classList.toggle('hidden',!on); if(!on) return;
@@ -915,6 +942,7 @@ function showView(v){
   if(v==='producao') openProd();
   if(v==='desempenho') openDesemp();
   if(v==='inicio') openHome();
+  if(v==='metricas') openMet();
   if(v==='ajustes') renderSettings();
   render();
 }
@@ -1309,7 +1337,7 @@ const toT=h=>hh(h), fromT=t=>+(t||'0').slice(0,2);
 function renderSettings(){
   draft=JSON.parse(JSON.stringify(cfg));
   $('#sWdStep').value=draft.weekday.step||1; $('#sWeStep').value=draft.weekend.step||2;
-  renderSettingsLists();
+  renderSettingsLists(); renderAuto();
 }
 function renderSettingsLists(){
   draft.platCfg=draft.platCfg||{};
@@ -1326,6 +1354,7 @@ function renderSettingsLists(){
     <div class="row">${avatar(t.name)}<b>${esc(t.name)}</b><span class="sp"></span>
       ${pins[t.name]?`<button class="btn ghost sm" data-rp="${i}">Resetar PIN</button>`:'<span class="pill">sem PIN</span>'}
       <button class="btn ghost sm" data-rm="${i}">Remover</button></div>
+    <label class="f" style="margin-top:8px">E-mail (para alertas)<input type="text" data-em="${i}" value="${esc(t.email||'')}" placeholder="nome@email.com"></label>
     <label class="f" style="margin-top:8px">Função<input type="text" data-role="${i}" value="${esc(t.role||'')}"></label>
     <div class="chips" style="margin-top:8px" data-pl="${i}"></div>
     <div class="row" style="margin-top:8px">
@@ -1334,6 +1363,7 @@ function renderSettingsLists(){
     </div></div>`).join('');
   draft.team.forEach((t,i)=>buildChips($(`[data-pl="${i}"]`),PLATS,t.plats||[],true,v=>{t.plats=(t.plats||[]).includes(v)?t.plats.filter(x=>x!==v):[...(t.plats||[]),v];renderSettingsLists()}));
   $('#sTeam').querySelectorAll('[data-role]').forEach(el=>el.oninput=()=>draft.team[+el.dataset.role].role=el.value);
+  $('#sTeam').querySelectorAll('[data-em]').forEach(el=>el.oninput=()=>draft.team[+el.dataset.em].email=el.value.trim());
   $('#sTeam').querySelectorAll('[data-mv]').forEach(el=>el.oninput=()=>draft.team[+el.dataset.mv].metaVideos=+el.value||0);
   $('#sTeam').querySelectorAll('[data-mp]').forEach(el=>el.oninput=()=>draft.team[+el.dataset.mp].metaPosts=+el.value||0);
   $('#sTeam').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{draft.team.splice(+b.dataset.rm,1);renderSettingsLists()});
@@ -2069,7 +2099,128 @@ function renderHome(){
 }
 
 try{document.querySelector('.logo').addEventListener('click',()=>{if(me)showView('inicio')})}catch(e){}
-const APP_VERSION='v2026.11.28-subabas';
+/* ======================= REDES: MÉTRICAS REAIS (Windsor.ai) ======================= */
+let MET=null, metErr='', metPer=30;
+const DOWS3=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+function spParts(ts){ const d=new Date(String(ts).replace(/\+0000$/,'Z')); if(isNaN(d)) return null;
+  const p=new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(d); const o={}; p.forEach(x=>o[x.type]=x.value);
+  return {date:`${o.year}-${o.month}-${o.day}`,h:o.hour==='24'?0:+o.hour,m:+o.minute}; }
+const nfmt=n=>Number(n||0).toLocaleString('pt-BR');
+const kfmt=n=>n>=1e6?(n/1e6).toFixed(1).replace('.',',')+' mi':n>=1e4?Math.round(n/1e3)+' mil':nfmt(n);
+function shortcode(u){const m=String(u||'').match(/instagram\.com\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/);return m?m[1]:null}
+async function openMet(){ $('#mtBody').innerHTML='<p class="muted">Carregando métricas…</p>';
+  try{ MET=await run('getMetrics',me,token); metErr=''; }catch(e){ MET=null; const m=errMsg(e); metErr=/inválida|not a function|getMetrics/i.test(m)?'upd':m; }
+  renderMet(); }
+function renderMet(){
+  document.querySelectorAll('#mtPer button').forEach(b=>b.classList.toggle('on',+b.dataset.p===metPer));
+  const el=$('#mtBody');
+  if(metErr==='upd'){el.innerHTML=`<div class="banner warn">Para ver as métricas, o Apps Script precisa do Code.gs novo (v5). Depois de colar, rode <b>instalarAutomacoes</b> e publique uma Nova versão.</div>`;return}
+  if(metErr){el.innerHTML=`<div class="banner bad">Erro: ${esc(metErr)}</div>`;return}
+  if(!MET) return;
+  const meta=MET.meta||{};
+  const info=`<div class="small muted">${meta.at?`Atualizado em ${esc(meta.at)}`:'Ainda não atualizado'}${meta.err?` · <span style="color:var(--bad)">último erro: ${esc(meta.err)}</span>`:''}${isAdmin?' · <a href="#" id="mtRef">atualizar agora</a>':''}</div>`;
+  if(!MET.posts.length){ el.innerHTML=`<div class="card mt-empty"><h3>Conecte as métricas do Instagram</h3>
+    <p>As métricas vêm do <b>Windsor.ai</b>, onde o Instagram <b>@cng.noticiasgoias</b> já está conectado. Falta só colocar a <b>chave de API</b> do Windsor no sistema.</p>
+    <ol><li>Entre em <b>onboard.windsor.ai</b> com a conta cngnoticiasgoias@gmail.com e copie a <b>API key</b> (menu da conta → API key).</li>
+    <li>Aqui no sistema, vá em <b>Ajustes → Automações e métricas</b>, cole a chave e clique em <b>Salvar chave</b>.</li></ol>${info}</div>`;
+    const r=$('#mtRef'); if(r) r.onclick=ev=>{ev.preventDefault();refreshMet()}; return; }
+  const lim=addDays(today(),-metPer+1);
+  const posts=MET.posts.map(p=>({...p,sp:spParts(p.ts)})).filter(p=>p.sp&&p.sp.date>=lim);
+  const own=posts; const n=own.length||1;
+  const tot=k=>own.reduce((a,p)=>a+(+p[k]||0),0);
+  const reach=tot('reach'), views=tot('views'), eng=tot('eng'), shares=tot('shares');
+  const rate=reach?eng/reach*100:0;
+  // ligação com os registros (pelo link)
+  const byCode={}; allEntries().forEach(e=>{const c=shortcode(e.link);if(c)byCode[c]=e});
+  Object.values(repCache||{}).forEach(l=>(l||[]).forEach(e=>{const c=shortcode(e.link);if(c&&!byCode[c])byCode[c]=e}));
+  own.forEach(p=>{p.code=shortcode(p.link);p.reg=p.code?byCode[p.code]:null});
+  const matched=own.filter(p=>p.reg);
+  // melhores horários
+  const hr=Array(24).fill(0).map(()=>({n:0,r:0}));
+  own.forEach(p=>{hr[p.sp.h].n++;hr[p.sp.h].r+=p.reach});
+  const med=arr=>{const s=arr.slice().sort((a,b)=>a-b);return s.length?s[Math.floor(s.length/2)]:0};
+  const hrMed=Array(24).fill(0).map((_,h)=>med(own.filter(p=>p.sp.h===h).map(p=>p.reach)));
+  const hmx=Math.max(1,...hrMed); const best=hrMed.map((v,h)=>({h,v,c:hr[h].n})).filter(x=>x.c>=2).sort((a,b)=>b.v-a.v).slice(0,3);
+  // formatos
+  const fmtName={REELS:'Reels',VIDEO:'Vídeo',IMAGE:'Imagem',CAROUSEL_ALBUM:'Carrossel'};
+  const fm={}; own.forEach(p=>{const k=fmtName[p.type]||p.type||'Outro';(fm[k]=fm[k]||[]).push(p.reach)});
+  const fmRows=Object.entries(fm).map(([k,v])=>({k,n:v.length,med:med(v)})).sort((a,b)=>b.med-a.med); const fmx=Math.max(1,...fmRows.map(x=>x.med));
+  // publi x notícia (legenda que não começa com "Siga: @cng" e marca outra conta)
+  const isPubli=p=>{const m=String(p.caption).match(/^Siga:\s*@([\w.]+)/i);return m&&!/cng\.noticiasgoias/i.test(m[1])};
+  const pub=own.filter(isPubli), notic=own.filter(p=>!isPubli(p));
+  // por funcionário
+  const pp={}; matched.forEach(p=>{const a=p.reg.autor;(pp[a]=pp[a]||{n:0,r:0,e:0,list:[]});pp[a].n++;pp[a].r+=p.reach;pp[a].e+=p.eng;pp[a].list.push(p.reach)});
+  const ppRows=Object.entries(pp).map(([a,x])=>({a,...x,med:med(x.list)})).sort((x,y)=>y.r-x.r); const pmx=Math.max(1,...ppRows.map(x=>x.r));
+  const top=own.slice().sort((a,b)=>b.reach-a.reach).slice(0,10);
+  const first=t=>esc(String(t||'').replace(/^Siga:\s*@[\w.]+\s*/i,'').split('\n').find(x=>x.trim())||'(sem legenda)').slice(0,110);
+  el.innerHTML=`
+    <div class="mhero">
+      <div><div class="dh-k">Alcance no Instagram · últimos ${metPer} dias</div><div class="dh-n">${kfmt(reach)}</div>
+        <div class="dh-s">${nfmt(own.length)} posts · média de <b>${kfmt(Math.round(reach/n))}</b> pessoas por post · mediana <b>${kfmt(med(own.map(p=>p.reach)))}</b></div>${info}</div>
+      <div class="mh-g">
+        <div><b>${kfmt(views)}</b><span>visualizações</span></div><div><b>${kfmt(eng)}</b><span>interações</span></div>
+        <div><b>${kfmt(shares)}</b><span>compartilhamentos</span></div><div><b>${rate.toFixed(1).replace('.',',')}%</b><span>taxa de engajamento</span></div>
+      </div>
+    </div>
+    <div class="pgrid">
+      <div class="card"><h3>🏆 Posts que mais performaram</h3><div class="small muted" style="margin:2px 0 8px">por alcance · clique para abrir no Instagram</div>
+        <div class="tp">${top.map((p,i)=>`<a class="tp-r" href="${esc(safeUrl(p.link))}" target="_blank" rel="noopener"><span class="tp-i">${i+1}</span>
+          <span class="tp-b"><b>${first(p.caption)}</b><span>${DOWS3[dow(p.sp.date)]} ${fmtD(p.sp.date)} às ${String(p.sp.h).padStart(2,'0')}:${String(p.sp.m).padStart(2,'0')} · ${fmtName[p.type]||p.type}${p.reg?` · por <b>${esc(p.reg.autor)}</b>`:''}${isPubli(p)?' · <span class="pill">publi</span>':''}</span></span>
+          <span class="tp-v"><b>${kfmt(p.reach)}</b><span>alcance</span><em>${kfmt(p.eng)} interações</em></span></a>`).join('')}</div></div>
+      <div class="card"><h3>⏰ Melhor horário de verdade</h3><div class="small muted" style="margin:2px 0 8px">alcance típico (mediana) dos posts publicados em cada hora</div>
+        <div class="vb an mt-h">${hrMed.map((v,h)=>`<div class="vc" data-tip="<b>${hh(h)}</b><br>${hr[h].n} post(s)<br>mediana: ${nfmt(v)} de alcance"><span class="vv"></span><span class="bw"><i style="height:${v/hmx*100}%;${best.some(b=>b.h===h)?'background:linear-gradient(180deg,#c6e43c,#6b8f00)':''}"></i></span><span class="vl2">${h%2===0?h:''}</span></div>`).join('')}</div>
+        ${best.length?`<div class="mt-best">Melhores horários: ${best.map(b=>`<span class="pill ok">${hh(b.h)} · ${kfmt(b.v)}</span>`).join(' ')}</div>`:''}
+        <h3 style="margin-top:16px">Formato que mais alcança</h3>
+        ${fmRows.map(x=>`<div class="pr" data-tip="${x.n} posts · mediana ${nfmt(x.med)}"><span class="nm">${esc(x.k)} <span class="muted">(${x.n})</span></span><span class="stk"><i style="width:${x.med/fmx*100}%;background:#2b2f36"></i></span><b class="vl">${kfmt(x.med)}</b></div>`).join('')}
+        <div class="small muted" style="margin-top:6px">Notícias: mediana ${kfmt(med(notic.map(p=>p.reach)))} · Publis: mediana ${kfmt(med(pub.map(p=>p.reach)))}</div>
+      </div>
+    </div>
+    <div class="card sec"><h3>👥 Alcance por funcionário</h3>
+      <div class="small muted" style="margin:2px 0 8px">${matched.length} de ${own.length} posts estão ligados a um registro pelo <b>link</b>. Quanto mais a equipe registrar o link, mais completo fica.</div>
+      ${ppRows.length?ppRows.map(x=>`<div class="tm2"><span class="pc-av sm" style="background:${colorOf(x.a)}">${esc(x.a[0])}</span><div class="tm2-id"><b>${esc(x.a)}</b><span>${x.n} post(s) com link</span></div>
+        <div class="tm2-bar"><i style="width:${x.r/pmx*100}%"></i><b>${kfmt(x.r)}</b><span>alcance somado</span></div><div class="tm2-m"><span>mediana ${kfmt(x.med)}</span><span>${kfmt(x.e)} interações</span></div></div>`).join(''):'<p class="muted small">Nenhum post deste período tem o link registrado no sistema.</p>'}
+    </div>`;
+  const r=$('#mtRef'); if(r) r.onclick=ev=>{ev.preventDefault();refreshMet()};
+  tipOn(el);
+}
+async function refreshMet(){ toast('Buscando métricas no Windsor…'); try{const r=await run('refreshMetrics',me,token);toast(r&&r.ok?`${r.posts} posts atualizados`:(r&&r.msg)||'Pronto');openMet()}catch(e){toast('Erro: '+errMsg(e))} }
+document.querySelectorAll('#mtPer button').forEach(b=>b.onclick=()=>{metPer=+b.dataset.p;renderMet()});
+
+/* ---- Ajustes: automações e métricas ---- */
+async function renderAuto(){
+  const el=$('#sAuto'); if(!el||!isAdmin) return;
+  const a=Object.assign({on:false,from:7,to:23,team:true,weekly:true,gestor:''},draft.alerts||{}); draft.alerts=a;
+  el.innerHTML=`
+    <label class="sw"><input type="checkbox" id="aOn" ${a.on?'checked':''}> <span><b>Alerta de horário vazio por e-mail</b><br><small>Avisa quando um horário do Instagram passa 15 min sem post.</small></span></label>
+    <div class="row" style="margin-top:8px">
+      <label class="f" style="flex:1">Avisar a partir de<select id="aFrom">${[...Array(24)].map((_,h)=>`<option value="${h}" ${h===+a.from?'selected':''}>${hh(h)}</option>`).join('')}</select></label>
+      <label class="f" style="flex:1">até<select id="aTo">${[...Array(24)].map((_,h)=>`<option value="${h}" ${h===+a.to?'selected':''}>${hh(h)}</option>`).join('')}</select></label>
+    </div>
+    <label class="sw"><input type="checkbox" id="aTeam" ${a.team?'checked':''}> <span>Enviar também para quem cuida da rede (e-mail no cadastro do funcionário)</span></label>
+    <label class="sw"><input type="checkbox" id="aWeekly" ${a.weekly?'checked':''}> <span><b>Relatório semanal</b> toda segunda às 7h30</span></label>
+    <label class="f" style="margin-top:8px">E-mail(s) do gestor<input type="text" id="aGestor" value="${esc(a.gestor||'')}" placeholder="cngnoticiasgoias@gmail.com, outro@email.com"></label>
+    <div class="row" style="margin-top:10px;gap:6px"><button class="btn ghost sm" id="aTestA">Enviar alerta de teste</button><button class="btn ghost sm" id="aTestR">Enviar relatório de teste</button></div>
+    <div class="sec"><h3>Métricas do Instagram (Windsor.ai)</h3>
+      <p class="small muted" style="margin:0 0 6px">Cole a API key do Windsor.ai. Ela fica guardada só no servidor (não aparece aqui de novo).</p>
+      <div class="row"><input type="password" id="aKey" placeholder="API key do Windsor.ai" autocomplete="off" style="flex:1"><button class="btn ghost sm" id="aKeySave">Salvar chave</button></div></div>
+    <div class="small muted" id="aStatus" style="margin-top:10px">Verificando automações…</div>`;
+  const sync=()=>{a.on=$('#aOn').checked;a.from=+$('#aFrom').value;a.to=+$('#aTo').value;a.team=$('#aTeam').checked;a.weekly=$('#aWeekly').checked;a.gestor=$('#aGestor').value.trim()};
+  ['#aOn','#aFrom','#aTo','#aTeam','#aWeekly'].forEach(s=>$(s).onchange=sync); $('#aGestor').oninput=sync;
+  const call=async(fn,okMsg,...args)=>{try{const r=await run(fn,me,token,...args);toast(okMsg(r));renderAutoStatus()}catch(e){const m=errMsg(e);toast(/inválida|not a function/i.test(m)?'Atualize o Apps Script com o Code.gs v5':'Erro: '+m)}};
+  $('#aTestA').onclick=()=>call('sendTestAlert',r=>'Alerta de teste enviado para '+r.to);
+  $('#aTestR').onclick=()=>call('sendTestReport',r=>'Relatório enviado para '+r.to);
+  $('#aKeySave').onclick=()=>{const k=$('#aKey').value.trim();if(!k){toast('Cole a chave');return}call('setWindsorKey',r=>r&&r.posts!=null?`Chave salva · ${r.posts} posts importados`:'Chave salva',k).then(()=>$('#aKey').value='')};
+  renderAutoStatus();
+}
+async function renderAutoStatus(){ const el=$('#aStatus'); if(!el) return;
+  try{const s=await run('automationStatus',me,token);
+    el.innerHTML=`${s.installed?'✅ Automações instaladas'+(s.installedAt?` em ${esc(s.installedAt)}`:''):'⚠️ Automações <b>não instaladas</b>: no Apps Script, rode a função <b>instalarAutomacoes</b> uma vez.'}<br>
+      ${s.windsor?'✅ Chave do Windsor salva':'⚪ Sem chave do Windsor'}${s.metricsAt?` · métricas de ${esc(s.metricsAt)}`:''}${s.metricsErr?` · <span style="color:var(--bad)">${esc(s.metricsErr)}</span>`:''}<br>
+      ${s.lastAlert?`Último alerta: ${esc(s.lastAlert)}`:'Nenhum alerta enviado ainda'}${s.lastReport?` · Último relatório: ${esc(s.lastReport)}`:''}`;
+  }catch(e){const m=errMsg(e);el.innerHTML=/inválida|not a function|automationStatus/i.test(m)?'⚠️ Para usar alertas, relatório e métricas, cole o <b>Code.gs v5</b> no Apps Script, rode <b>instalarAutomacoes</b> e publique uma Nova versão.':'Erro: '+esc(m)}
+}
+
+const APP_VERSION='v2026.11.28-automacoes';
 try{$('#appVer').textContent=APP_VERSION;document.querySelector('.logo').title='Versão '+APP_VERSION}catch(e){}
 /* ======================= boot ======================= */
 gDate=today(); eDate=today();
