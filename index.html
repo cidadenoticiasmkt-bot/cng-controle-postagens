@@ -384,6 +384,15 @@ input[type=date],input[type=time]{appearance:none;-webkit-appearance:none;min-he
 .hc-l{margin-top:auto;padding-top:10px;font-size:12.5px;font-weight:700;color:var(--limeink)}
 .hc-go{position:absolute;right:18px;top:20px;font-size:18px;color:#c2c7ce;transition:color .15s,transform .15s} .hc:hover .hc-go{color:var(--ink);transform:translateX(3px)}
 .logo{cursor:pointer}
+
+/* barra de sub-abas da Produção */
+.grpbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:-2px 0 18px;padding:8px;background:#fff;border:1px solid #e9eae6;border-radius:18px;box-shadow:0 1px 2px #0000000a,0 6px 20px #0000000a}
+.grp-t{font-family:Archivo;font-weight:800;font-size:14px;padding:6px 10px 6px 12px;border-right:1px solid var(--line);color:var(--ink)}
+.grp-s{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1} .grp-s::-webkit-scrollbar{display:none}
+.grp-s button{border:0;background:transparent;border-radius:12px;padding:8px 14px;font-weight:700;font-size:13.5px;color:var(--ink2);white-space:nowrap;display:inline-flex;gap:6px;align-items:center;touch-action:manipulation}
+.grp-s button:hover{background:#f3f5ee}
+.grp-s button.on{background:linear-gradient(135deg,#0d0d0d,#2a3a0e);color:#fff;box-shadow:0 2px 8px #0000002a}
+@media (max-width:760px){.grp-t{display:none}.grpbar{padding:6px;border-radius:14px}}
 </style>
 </head>
 <body>
@@ -393,13 +402,9 @@ input[type=date],input[type=time]{appearance:none;-webkit-appearance:none;min-he
     <div class="clock" id="clock"></div>
     <nav id="nav" class="hidden">
       <button data-v="inicio">Início</button>
-      <button data-v="desempenho">Desempenho</button>
-      <button data-v="painel">Painel</button>
-      <button data-v="relatorios">Relatórios</button>
       <button data-v="registrar">Registrar</button>
       <button data-v="grade">Grade do dia</button>
       <button data-v="producao">Produção</button>
-      <button data-v="equipe">Equipe</button>
       <button data-v="historico">Histórico</button>
       <button data-v="ajustes" id="navAjustes">Ajustes</button>
     </nav>
@@ -409,6 +414,7 @@ input[type=date],input[type=time]{appearance:none;-webkit-appearance:none;min-he
 
 <main>
   <div id="status"></div>
+  <div class="grpbar hidden" id="grpTabs"></div>
 
   <!-- LOGIN -->
   <section id="v-login" class="login hidden">
@@ -589,7 +595,7 @@ input[type=date],input[type=time]{appearance:none;-webkit-appearance:none;min-he
       <div class="dnav"><button id="prPrev" title="Dia anterior">‹</button><input type="date" id="prDate"><button id="prNext" title="Próximo dia">›</button></div>
       <button class="btn ghost sm" id="prToday">Hoje</button><button class="btn ghost sm" id="prReload" title="Buscar dados novos">↻ Atualizar</button>
     </div>
-    <div class="subtabs" id="prSubs"><button data-s="dia" class="on">📋 Resumo do dia</button><button data-s="ana">📊 Análise por participante</button></div>
+    <div class="subtabs hidden" id="prSubs"><button data-s="dia" class="on">📋 Resumo do dia</button><button data-s="ana">📊 Análise por participante</button></div>
     <div id="prMain">
     <div class="phero" id="prHero"></div>
     <div class="psec"><h3>Quando as notícias entram no ar</h3><span class="small muted">o que foi lançado neste dia, separado pela data de publicação</span></div>
@@ -878,11 +884,27 @@ function enterApp(){
 }
 
 /* ======================= navegação ======================= */
+/* ---- Produção como grupo: sub-abas só aparecem dentro dela ---- */
+const PROD_GROUP=['producao','desempenho','painel','relatorios','equipe'];
+const GRP_TABS=[
+  {k:'p-dia',ic:'📋',t:'Resumo do dia'},{k:'p-ana',ic:'📊',t:'Análise por participante'},
+  {k:'desempenho',ic:'🎯',t:'Desempenho'},{k:'painel',ic:'📈',t:'Painel'},{k:'relatorios',ic:'🧾',t:'Relatórios'},{k:'equipe',ic:'👥',t:'Equipe'}];
+function renderGrpTabs(){
+  const el=$('#grpTabs'); if(!el) return;
+  const on=PROD_GROUP.includes(view); el.classList.toggle('hidden',!on); if(!on) return;
+  const act=view==='producao'?(typeof prodSub!=='undefined'&&prodSub==='ana'?'p-ana':'p-dia'):view;
+  el.innerHTML=`<span class="grp-t">Produção</span><div class="grp-s">${GRP_TABS.map(x=>`<button data-g="${x.k}" class="${x.k===act?'on':''}"><span>${x.ic}</span>${x.t}</button>`).join('')}</div>`;
+  el.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{const g=b.dataset.g;
+    if(g==='p-dia'||g==='p-ana'){const sub=g==='p-dia'?'dia':'ana';prodSub=sub;if(view!=='producao')showView('producao');showProdSub(sub)}
+    else showView(g);
+    renderGrpTabs(); window.scrollTo({top:0,behavior:'smooth'});});
+}
 function showView(v){
   view=v;
   document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
   $('#v-'+v).classList.remove('hidden');
-  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===(PROD_GROUP.includes(v)?'producao':v)));
+  renderGrpTabs();
   if(v!=='login'){try{history.replaceState(null,'','#'+v)}catch(e){}}
   if(v==='grade') subscribeMonth(gDate.slice(0,7));
   if(v==='equipe') subscribeMonth(eDate.slice(0,7));
@@ -1873,7 +1895,7 @@ function renderAna(){
   $('#anTable').querySelectorAll('[data-pp]').forEach(x=>x.onclick=()=>{ANA.person=ANA.person===x.dataset.pp?'':x.dataset.pp;renderAna();$('#anTitle').scrollIntoView({behavior:'smooth',block:'start'})});
   tipOn($('#prAna'));
 }
-function showProdSub(s){prodSub=s;document.querySelectorAll('#prSubs button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
+function showProdSub(s){prodSub=s;setTimeout(renderGrpTabs,0);document.querySelectorAll('#prSubs button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
   $('#prMain').classList.toggle('hidden',s!=='dia'); $('#prAna').classList.toggle('hidden',s!=='ana'); if(s==='ana') loadAna(); else renderProd();}
 document.querySelectorAll('#prSubs button').forEach(b=>b.onclick=()=>showProdSub(b.dataset.s));
 document.querySelectorAll('#anPer button').forEach(b=>b.onclick=()=>{ANA.per=b.dataset.p;loadAna()});
@@ -2047,7 +2069,7 @@ function renderHome(){
 }
 
 try{document.querySelector('.logo').addEventListener('click',()=>{if(me)showView('inicio')})}catch(e){}
-const APP_VERSION='v2026.11.28-inicio';
+const APP_VERSION='v2026.11.28-subabas';
 try{$('#appVer').textContent=APP_VERSION;document.querySelector('.logo').title='Versão '+APP_VERSION}catch(e){}
 /* ======================= boot ======================= */
 gDate=today(); eDate=today();
